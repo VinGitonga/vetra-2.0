@@ -12,6 +12,7 @@ const PrimaryButton = ({
   return (
     <button
       {...rest}
+      type={"button"}
       className={`${
         isWidthFull && "w-full"
       } px-4 py-2 tracking-wide text-white transition-colors duration-300 transform bg-blue-700 rounded-md hover:bg-blue-600 focus:outline-none focus:bg-blue-600 flex items-center justify-center`}

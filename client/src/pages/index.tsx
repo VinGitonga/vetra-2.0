@@ -1,7 +1,10 @@
+import PrimaryButton from "@/components/buttons/PrimaryButton";
 import ConnectButton from "@/components/web3/ConnectButton";
 import Head from "next/head";
+import { useRouter } from "next/router";
 
 export default function Home() {
+  const router = useRouter();
   return (
     <>
       <Head>
@@ -28,6 +31,14 @@ export default function Home() {
 
               <div className="flex flex-col mt-8 space-y-3 sm:-mx-2 sm:flex-row sm:justify-center sm:space-y-0 space-x-4">
                 <ConnectButton />
+                <PrimaryButton
+                  text="Go To Dashboard"
+                  isWidthFull={false}
+                  style={{
+                    borderRadius: "25px",
+                  }}
+                  onClick={() => router.push("/dashboard")}
+                />
               </div>
             </div>
           </section>

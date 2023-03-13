@@ -62,7 +62,7 @@ const FileCard = ({ file }: FileCardProps) => {
       <div className="block p-6 max-w-sm bg-white rounded-2xl border border-gray-200 shadow-md hover:bg-gray-100 ">
         <div className="flex justify-end">
           <Dropdown inline={true} label="">
-            <Dropdown.Item>
+            <Dropdown.Item className="bg-white">
               <button
                 // onClick={openShareModal}
                 className="block py-2 px-4 text-sm text-gray-700 cursor-pointer hover:bg-gray-100"
@@ -70,7 +70,7 @@ const FileCard = ({ file }: FileCardProps) => {
                 Share
               </button>
             </Dropdown.Item>
-            <Dropdown.Item>
+            <Dropdown.Item className="bg-white">
               <button
                 onClick={downloadFile}
                 className="block py-2 px-4 text-sm text-gray-700 cursor-pointer hover:bg-gray-100"
@@ -78,7 +78,7 @@ const FileCard = ({ file }: FileCardProps) => {
                 Download
               </button>
             </Dropdown.Item>
-            <Dropdown.Item>
+            <Dropdown.Item className="bg-white">
               <a
                 href="#"
                 className="block py-2 px-4 text-sm text-red-600 hover:bg-gray-100"

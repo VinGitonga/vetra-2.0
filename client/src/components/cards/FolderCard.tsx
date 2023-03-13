@@ -19,7 +19,7 @@ const FolderCard = ({ title, hrefPath }: FolderCardProps) => {
         </div>
         <div className="font-medium">{title}</div>
         <Dropdown inline={true} label="">
-          <Dropdown.Item>
+          <Dropdown.Item className="bg-white">
             <a
               onClick={() => router.push(`${hrefPath}`)}
               className="block py-2 px-4 text-sm text-gray-700 hover:bg-gray-100"
@@ -27,7 +27,7 @@ const FolderCard = ({ title, hrefPath }: FolderCardProps) => {
               View Contents
             </a>
           </Dropdown.Item>
-          <Dropdown.Item>
+          <Dropdown.Item className="bg-white">
             <a className="block py-2 px-4 text-sm text-red-600 hover:bg-gray-100">
               Delete
             </a>
