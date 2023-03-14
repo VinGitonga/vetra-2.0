@@ -5,12 +5,12 @@ import { FaUsers } from "react-icons/fa";
 import { TbMessage2Share } from "react-icons/tb";
 import { VscGitPullRequestCreate } from "react-icons/vsc";
 import { useRouter } from "next/router";
-import { useState } from "react";
 import { IconType } from "react-icons";
 import { BiHomeAlt } from "react-icons/bi";
-// import CreateFolder from "../dialogs/CreateFolder";
-// import UploadFile from "../dialogs/UploadFile";
-// import useToast from "../../hooks/useToast";
+import { useModal } from "@/hooks/store/useModal";
+import CreateFolder from "@/components/dialogs/CreateFolder";
+import { shallow } from "zustand/shallow";
+import UploadFile from "@/components/dialogs/UploadFile";
 
 interface NavItemProps {
   title: string;
@@ -19,26 +19,32 @@ interface NavItemProps {
 }
 
 export default function Sidebar() {
-  //   const toast = useToast();
-  const [isOpen, setIsOpen] = useState(false);
-  const [showUpload, setShowUpload] = useState(false);
+  const { setCreateModal, setUploadModal, openCreateModal, openUploadModal } =
+    useModal(
+      (state) => ({
+        setCreateModal: state.setCreateModal,
+        setUploadModal: state.setUploadModal,
+        openCreateModal: state.openCreateModal,
+        openUploadModal: state.openUploadModal,
+      }),
+      shallow
+    );
 
-  const closeModal = () => setIsOpen(false);
-  const openModal = () => setIsOpen(true);
+  const closeModal = () => setCreateModal(false);
+  const openModal = () => setCreateModal(true);
 
-  const closeUpload = () => setShowUpload(false);
-  const openUpload = () => setShowUpload(true);
+  const closeUpload = () => setUploadModal(false);
+  const openUpload = () => setUploadModal(true);
 
   const router = useRouter();
   return (
     <div className="w-64 h-screen fixed">
-      {/* <CreateFolder isOpen={isOpen} closeModal={closeModal} toast={toast} />
+      <CreateFolder isOpen={openCreateModal} closeModal={closeModal} />
       <UploadFile
-        isOpen={showUpload}
+        isOpen={openUploadModal}
         closeModal={closeUpload}
-        setIsOpen={setShowUpload}
-        toast={toast}
-      /> */}
+        setIsOpen={setUploadModal}
+      />
       <button
         type="button"
         onClick={openUpload}

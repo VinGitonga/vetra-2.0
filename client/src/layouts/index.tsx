@@ -11,10 +11,10 @@ export default function MainLayout({ children }: MainLayoutProps) {
     <div className="bg-white">
       <Navbar />
       <main className="grid grid-cols-8 gap-4 px-16 py-8 border-r mt-16">
-        <div className="col-span-2">
+        <div className="hidden md:block md:col-span-2">
           <Sidebar />
         </div>
-        <div className={`col-span-6`}>{children}</div>
+        <div className={`col-span-8 md:col-span-6`}>{children}</div>
       </main>
     </div>
   );
