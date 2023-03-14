@@ -1,3 +1,4 @@
+import AppServices from "@/AppServices";
 import { env } from "@/config/enviroment";
 import { getDeployments } from "@/deployments";
 import "@/styles/globals.css";
@@ -35,7 +36,7 @@ export default function App({ Component, pageProps }: AppPropsWithLayout) {
         defaultChain={env.defaultChain || alephzeroTestnet}
         deployments={getDeployments()}
       >
-        {getLayout(<Component {...pageProps} />)}
+        <AppServices>{getLayout(<Component {...pageProps} />)}</AppServices>
         <Toaster />
       </UseInkathonProvider>
     </main>
