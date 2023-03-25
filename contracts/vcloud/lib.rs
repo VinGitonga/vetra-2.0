@@ -3,8 +3,8 @@
 #[ink::contract]
 mod vcloud {
     use ink::prelude::string::String;
+    use ink::prelude::vec::Vec;
     use ink::storage::Mapping;
-    use ink_prelude::vec::Vec;
 
     /// Errors that might occur while executing the contract.
     #[derive(Debug, PartialEq, Eq, scale::Encode, scale::Decode)]
@@ -15,7 +15,7 @@ mod vcloud {
     }
 
     pub type Result<T> = core::result::Result<T, Error>;
-    
+
     /// Events that are emitted after calls.
     #[ink(event)]
     pub struct UserCreated {
@@ -32,12 +32,15 @@ mod vcloud {
         sent_by: AccountId,
     }
 
-    #[derive(scale::Encode, scale::Decode, Debug, PartialEq, Eq, Copy, Clone)]
-    #[cfg_attr(feature = "std", derive(scale_info::TypeInfo, ink_storage::traits::StorageLayout))]
+    #[derive(scale::Encode, scale::Decode, Debug, PartialEq, Eq, Clone)]
+    #[cfg_attr(
+        feature = "std",
+        derive(scale_info::TypeInfo, ink::storage::traits::StorageLayout)
+    )]
     pub struct User {
-         email: String,
-         phone: String,
-         address: AccountId,
+        email: String,
+        phone: String,
+        address: AccountId,
     }
 
     impl Default for User {
@@ -50,14 +53,17 @@ mod vcloud {
         }
     }
 
-    #[derive(scale::Encode, scale::Decode, Debug, PartialEq, Eq, Copy, Clone)]
-    #[cfg_attr(feature = "std", derive(scale_info::TypeInfo, ink_storage::traits::StorageLayout))]
+    #[derive(scale::Encode, scale::Decode, Debug, PartialEq, Eq, Clone)]
+    #[cfg_attr(
+        feature = "std",
+        derive(scale_info::TypeInfo, ink::storage::traits::StorageLayout)
+    )]
     pub struct Request {
-      msg: String,
-      addressed_to: AccountId,
-      sent_by: AccountId,
-      sent_at: Timestamp,
-      request_id: u64,
+        msg: String,
+        addressed_to: AccountId,
+        sent_by: AccountId,
+        sent_at: Timestamp,
+        request_id: u64,
     }
 
     impl Default for Request {
@@ -92,24 +98,24 @@ mod vcloud {
         }
         /// add new user
         #[ink(message)]
-        pub fn add_user(&mut self, email: String, phone: String) {
+        pub fn add_user(&mut self, email: String, phone: String) -> Result<()> {
             let caller = self.env().caller();
             let user = User {
                 email,
                 phone,
                 address: caller,
             };
-            if self.users.contains($caller) {
+            if self.users.contains(&caller) {
                 return Err(Error::UserAlreadyExists);
             }
             self.users.insert(caller, &user);
             self.users_items.push(caller);
             self.env().emit_event(UserCreated { user: caller });
-                Ok(())
+            Ok(())
         }
         //get user
         #[ink(message)]
-        pub fn get_user(&self, user: AccountId) -> User {
+        pub fn get_user(&self, user: AccountId) -> Option<User> {
             if !self.users.contains(&user) {
                 return None;
             }
@@ -117,7 +123,12 @@ mod vcloud {
         }
         /// create new document request
         #[ink(message)]
-        pub fn create_request(&mut self, msg: String, addressed_to: AccountId) {
+        pub fn create_request(
+            &mut self,
+            msg: String,
+            addressed_to: AccountId,
+            request_id: u64,
+        ) -> Result<()> {
             let caller = self.env().caller();
             let request = Request {
                 msg,
@@ -129,16 +140,11 @@ mod vcloud {
             self.requests.insert(request.request_id, &request);
             self.requests_items.push(request.request_id);
             self.env().emit_event(RequestCreated {
-            request_id,
-            addressed_to,
-            sent_by,
+                request_id,
+                addressed_to,
+                sent_by: caller.clone(),
             });
             Ok(())
         }
     }
 }
-
-    
-
-    
-
