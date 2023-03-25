@@ -1,6 +1,10 @@
 import { Dialog, Transition } from "@headlessui/react";
+import { useInkathon } from "@scio-labs/use-inkathon";
 import { Fragment, useState } from "react";
 import PrimaryButton from "../buttons/PrimaryButton";
+import { toast } from "react-hot-toast";
+import useDb from "@/hooks/useDb";
+import { IBloc } from "@/types/Bloc";
 
 interface CreateFolderProps {
   isOpen: boolean;
@@ -11,10 +15,49 @@ export default function CreateFolder({
   isOpen,
   closeModal,
 }: CreateFolderProps) {
-  const [displayName, setDisplayName] = useState("");
+  const { activeAccount } = useInkathon();
+  const { createBloc } = useDb();
+  const [displayName, setDisplayName] = useState<string>("");
   const [loading, setLoading] = useState(false);
 
-  const clickSubmit = () => {};
+  const clickSubmit = async () => {
+    if (!activeAccount) {
+      toast.error("Please connect your wallet");
+      return;
+    }
+
+    if (!displayName) {
+      toast.error("Please enter a folder name");
+      return;
+    }
+
+    const created = new Date()
+
+    const blocDetails: IBloc = {
+      displayName,
+      ownerAddress: activeAccount.address,
+      allowedAddresses: [activeAccount.address],
+      created,
+      updated: created,
+    };
+
+    setLoading(true);
+
+    try {
+      const resp = await createBloc(blocDetails);
+      if (resp.status === "ok") {
+        toast.success("Folder created successfully");
+        closeModal();
+      } else {
+        toast.error("Something went wrong");
+      }
+    } catch (err) {
+      console.log(err);
+      toast.error("Something went wrong");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <>
