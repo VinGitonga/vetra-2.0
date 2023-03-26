@@ -1,5 +1,6 @@
 import prettyBytes from "pretty-bytes";
 import { customAlphabet } from "nanoid";
+import CryptoJS from "crypto-js";
 
 export const getDateAdded = (addedAt: string) =>
   new Date(addedAt).toLocaleString();
@@ -39,7 +40,7 @@ export async function encryptBlob(blob: Blob) {
     blob: new Blob([result]),
     iv: iv.toString(),
     exportedkey: exportedkey,
-  }
+  };
 
   return returnVals;
 }

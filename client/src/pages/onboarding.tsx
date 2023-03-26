@@ -1,5 +1,5 @@
 import PrimaryButton from "@/components/buttons/PrimaryButton";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useRouter } from "next/router";
 import { RiLoginCircleFill } from "react-icons/ri";
 import Head from "next/head";
@@ -12,6 +12,7 @@ import {
 import { ContractID } from "@/types/Contracts";
 import { NextPageWithLayout } from "@/types/Layout";
 import OnboardingLayout from "@/layouts/Onboarding";
+import useApi from "@/hooks/useApi";
 
 const Onboarding: NextPageWithLayout = () => {
   const { activeAccount, activeSigner, api } = useInkathon();
@@ -20,6 +21,7 @@ const Onboarding: NextPageWithLayout = () => {
   const [phone, setPhone] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
   const router = useRouter();
+  const { generateEncryptedSecret } = useApi();
 
   const resetFields = () => {
     setEmail("");
@@ -65,14 +67,16 @@ const Onboarding: NextPageWithLayout = () => {
         "addUser",
         {},
         [email, phone],
-        ({ status }) => {
+        async ({ status }) => {
           if (status.isInBlock) {
             toast.success("Successfully registered");
             resetFields();
             router.push("/dashboard");
+            await generateEncryptedSecret();
           }
         }
-      )
+      );
+      // generate user secrets and save
     } catch (err) {
       console.log(err);
       toast.error("Something went wrong");

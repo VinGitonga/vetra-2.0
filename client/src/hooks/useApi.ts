@@ -52,13 +52,14 @@ const useApi = () => {
 
           if (encryptedNounce) {
             // save encrypted nounce onchain
+            api.setSigner(activeSigner);
             await contractTx(
               api,
               activeAccount.address,
               contract,
               "addNounce",
               {},
-              [activeAccount.address, encryptedNounce],
+              [encryptedNounce],
               (result) => {
                 if (result.status.isInBlock) {
                   toast.success("Secret generated successfully");
@@ -77,11 +78,11 @@ const useApi = () => {
         toast.error("Something went wrong");
       }
     }
-  }, []);
+  }, [activeAccount]);
 
   const getEncryptedNounce = useCallback(async () => {
     if (!activeAccount || !activeSigner || !api || !contract) {
-      toast.error("Please connect your wallet");
+      // toast.error("Please connect your wallet");
       return null;
     }
     if (activeAccount && activeSigner && api && contract) {
@@ -107,14 +108,17 @@ const useApi = () => {
     try {
       const encryptedNounce = await getEncryptedNounce();
       const resp = await getEncryptedSecret();
+      console.log(resp)
+      console.log(encryptedNounce)
       if (resp.status === "ok") {
         const encryptedSecret = resp.data.encryptedSecret;
         if (encryptedSecret && encryptedNounce) {
-          const secret = decryptSecret(
+          const secret = await decryptSecret(
             encryptedSecret,
             encryptedNounce,
             activeAccount.address
           );
+          
           return secret;
         } else {
           return null;

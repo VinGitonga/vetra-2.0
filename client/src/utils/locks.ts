@@ -1,41 +1,56 @@
 import { ISecret } from "@/types/Secret";
-import * as crypto from "crypto";
 import secretKey from "secret-key";
 import CryptoJS from "crypto-js";
 
+
+// encode nounce with owner wallet address using CryptoJS
 export const encodeNounce = async (nounce: string, owner: string) => {
-  const msg = Buffer.from(nounce);
-  const key = Buffer.from(owner);
+  let salt = CryptoJS.lib.WordArray.random(128 / 8);
 
-  const iv = crypto.randomBytes(16);
+  const key = CryptoJS.PBKDF2(owner, salt, {
+    keySize: 256 / 32,
+    iterations: 1000,
+  });
 
-  const cipher = crypto.createCipheriv("aes-256-cbc", key, iv);
+  const iv = CryptoJS.lib.WordArray.random(128 / 8);
 
-  const encrypted = Buffer.concat([cipher.update(msg), cipher.final()]);
+  const encrypted = CryptoJS.AES.encrypt(nounce, key, {
+    iv: iv,
+    padding: CryptoJS.pad.Pkcs7,
+    mode: CryptoJS.mode.CBC,
+  });
 
-  return iv.toString("hex") + ":" + encrypted.toString("hex");
+  // salt, iv will be hex 32 in length
+  // append them to the ciphertext for use  in decryption
+  const transitmessage = `${salt.toString()}:${iv.toString()}:${encrypted.toString()}`;
+
+  return transitmessage;
 };
 
-// decode nounce using owner address encrypted text
-export const decodeNounce = async (encrypted: string, owner: string) => {
-  const textParts = encrypted.split(":");
-  const iv = Buffer.from(textParts.shift(), "hex");
-  const encryptedText = Buffer.from(textParts.join(":"), "hex");
-  const decipher = crypto.createDecipheriv(
-    "aes-256-cbc",
-    Buffer.from(owner),
-    iv
-  );
-  const decrypted = Buffer.concat([
-    decipher.update(encryptedText),
-    decipher.final(),
-  ]);
+export const decodeNounce = async (transitmessage: string, owner: string) => {
+  const t = transitmessage.split(":");
+  const salt = CryptoJS.enc.Hex.parse(t[0]);
+  const iv = CryptoJS.enc.Hex.parse(t[1]);
+  const encrypted = t[2];
 
-  return decrypted.toString();
+  const key = CryptoJS.PBKDF2(owner, salt, {
+    keySize: 256 / 32,
+    iterations: 1000,
+  });
+
+  const decrypted = CryptoJS.AES.decrypt(encrypted, key, {
+    iv: iv,
+    padding: CryptoJS.pad.Pkcs7,
+    mode: CryptoJS.mode.CBC,
+  });
+
+  return decrypted.toString(CryptoJS.enc.Utf8);
 };
+
 
 export const generateSecret = async (owner: string) => {
   const secretOptions = secretKey.create(owner) as ISecret;
+  console.log(secretOptions);
   const rawSecret = secretOptions.secret;
   const rawNounce = secretOptions.iv;
   const timestamp = secretOptions.timestamp;
@@ -64,10 +79,14 @@ export const decryptSecret = async (
   // decrypt nounce
   const decryptedNounce = await decodeNounce(encryptedNounce, owner);
 
+
+
   // decrypt secret
-  const bytes = CryptoJS.AES.decrypt(encryptedSecret, decryptedNounce);
+  const bytes = CryptoJS.AES.decrypt(encryptedSecret, encryptedNounce);
+
 
   const decryptedSecret = bytes.toString(CryptoJS.enc.Utf8);
+
 
   return decryptedSecret;
 };

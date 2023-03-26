@@ -28,11 +28,11 @@ async function generateSecretKey(req: NextApiRequest, res: NextApiResponse) {
     return;
   }
 
-  const { encryptedSecret, encryptedNounce, timestamp } = await generateSecret(
-    user.address
-  );
-
+  
   try {
+    const { encryptedSecret, encryptedNounce, timestamp } = await generateSecret(
+      user.address
+    );
     const vaultRepo = (await client).fetchRepository(vaultSchema);
     const newVaultItem = vaultRepo.createEntity({
       owner: user.address,

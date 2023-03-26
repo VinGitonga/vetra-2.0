@@ -131,6 +131,7 @@ const UploadFile = ({ isOpen, closeModal, setIsOpen }: UploadFileProps) => {
     // get the secret
     const secret = await getUserSecret();
 
+
     // encrypt file
 
     const { blob, iv, exportedkey } = await encryptBlob(
@@ -147,7 +148,6 @@ const UploadFile = ({ isOpen, closeModal, setIsOpen }: UploadFileProps) => {
     }
 
     encryptedSecret = await encryptBlobSecretKey(secret, stringExportedKey);
-    console.log(encryptedSecret);
 
     // const decryptedBlob = await decryptBlob(blob, iv, exportedkey);
 
