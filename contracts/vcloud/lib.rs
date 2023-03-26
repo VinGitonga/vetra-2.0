@@ -54,6 +54,23 @@ mod vcloud {
         #[ink(topic)]
         owner: AccountId,
     }
+    #[ink(event)]
+    pub struct ShareCreated {
+        #[ink(topic)]
+        file_id: String,
+        #[ink(topic)]
+        file_name: String,
+        #[ink(topic)]
+        ipfs_path: String,
+        #[ink(topic)]
+        sent_to: AccountId,
+        #[ink(topic)]
+        file_size: u64,
+        #[ink(topic)]
+        sent_at: Timestamp,
+        #[ink(topic)]
+        sent_by: AccountId,
+    }
 
     #[derive(scale::Encode, scale::Decode, Debug, PartialEq, Eq, Clone)]
     #[cfg_attr(
@@ -145,6 +162,35 @@ mod vcloud {
         }
     }
 
+    #[derive(scale::Encode, scale::Decode, Debug, PartialEq, Eq, Clone)]
+    #[cfg_attr(
+        feature = "std",
+        derive(scale_info::TypeInfo, ink::storage::traits::StorageLayout)
+    )]
+    pub struct Share {
+        file_id: String,
+        file_name: String,
+        ipfs_path: String,
+        sent_to: AccountId,
+        file_size: u64,
+        sent_at: Timestamp,
+        sent_by: AccountId,
+    } 
+
+    impl Default for Share {
+        fn default() -> Self {
+            Self {
+                file_id: String::from(""),
+                file_name: String::from(""),
+                ipfs_path: String::from(""),
+                sent_to: AccountId::from([0x0; 32]),
+                file_size: 0,
+                sent_at: Timestamp::default(),
+                sent_by: AccountId::from([0x0; 32]),
+            }
+        }
+    }
+
     #[ink(storage)]
     pub struct Vcloud {
         users: Mapping<AccountId, User>,
@@ -154,6 +200,8 @@ mod vcloud {
         replies: Mapping<u64, Reply>,
         replies_items: Vec<u64>,
         vault: Mapping<AccountId, String>,
+        shared: Mapping<u64, Share>,
+        shared_items: Vec<u64>,
     }
 
     impl Vcloud {
@@ -357,5 +405,69 @@ mod vcloud {
             self.env().emit_event(VaultRemoved { owner: caller });
             Ok(())
         }
+        /// create a share for a document present in our web3 storage with a wallet address or email address
+        #[ink(message)]
+        pub fn create_share(&mut self, file_id: String, file_name: String, sent_to: AccountId, ipfs_path: String, sent_by: AccountId, file_size: u64) -> Result<()> {
+            let caller = self.env().caller();
+            let share = Share {
+                file_id,
+                file_name,
+                sent_to,
+                ipfs_path,
+                sent_by: caller,
+                sent_at: self.env().block_timestamp(),
+                file_size,
+            };
+            self.shares.insert(share.file_id.clone(), &share);
+            self.shares_items.push(share.file_id.clone());
+            self.env().emit_event(File Shared Succefully {
+                file_id,
+                file_name,
+                sent_to,
+                ipfs_path,
+                sent_by: caller.clone(),
+                file_size,
+                sent_at: self.env().block_timestamp(),
+            });
+            Ok(())
+        }
+
+        /// get shared Files
+        #[ink(message)]
+        pub fn get_shared_files(&self) -> Vec<Share> {
+            let mut shares = Vec::new();
+            for file_id in self.shares_items.iter() {
+                let share = self.shares.get(file_id).unwrap();
+                shares.push(share);
+            }
+            shares
+        }
+
+        /// get shared Files by sent_by
+        #[ink(message)]
+        pub fn get_shared_files_by_sent_by(&self, sent_by: AccountId) -> Vec<Share> {
+            let mut shares = Vec::new();
+            for file_id in self.shares_items.iter() {
+                let share = self.shares.get(file_id).unwrap();
+                if share.sent_by == sent_by {
+                    shares.push(share);
+                }
+            }
+            shares
+        }
+
+        /// get shared Files by sent_to
+        #[ink(message)] 
+        pub fn get_shared_files_by_sent_to(&self, sent_to: AccountId) -> Vec<Share> {
+            let mut shares = Vec::new();
+            for file_id in self.shares_items.iter() {
+                let share = self.shares.get(file_id).unwrap();
+                if share.sent_to == sent_to {
+                    shares.push(share);
+                }
+            }
+            shares
+        }
     }
+
 }
