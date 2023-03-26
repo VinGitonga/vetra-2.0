@@ -1,11 +1,13 @@
 import PrimaryButton from "@/components/buttons/PrimaryButton";
 import FileCard from "@/components/cards/FIleCard";
 import FolderCard from "@/components/cards/FolderCard";
+import useApi from "@/hooks/useApi";
 import MainLayout from "@/layouts";
 import { NextPageWithLayout } from "@/types/Layout";
 import Head from "next/head";
 
 const Dashboard: NextPageWithLayout = () => {
+  const { generateEncryptedSecret } = useApi();
   return (
     <>
       <Head>
@@ -20,6 +22,9 @@ const Dashboard: NextPageWithLayout = () => {
             <PrimaryButton
               text={"Refresh Files / Folders"}
               isWidthFull={false}
+              // onClick={async () => {
+              //   await generateEncryptedSecret();
+              // }}
             />
           </div>
           <h1 className="text-xl font-semibold text-gray-800 capitalize mb-4">

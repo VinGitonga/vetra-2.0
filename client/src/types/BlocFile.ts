@@ -11,5 +11,7 @@ export interface IBlocFile {
     estuaryRetrievalUrl: string;
     retrievalUrl: string;
     created: number,
-    updated: number
+    updated: number,
+    encryptedKey: string,
+    iv: string
 }

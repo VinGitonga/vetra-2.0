@@ -2,141 +2,472 @@
 
 #[ink::contract]
 mod vcloud {
+    use ink::prelude::string::String;
+    use ink::prelude::vec::Vec;
+    use ink::storage::Mapping;
 
-    /// Defines the storage of your contract.
-    /// Add new fields to the below struct in order
-    /// to add new static storage fields to your contract.
+    /// Errors that might occur while executing the contract.
+    #[derive(Debug, PartialEq, Eq, scale::Encode, scale::Decode)]
+    #[cfg_attr(feature = "std", derive(scale_info::TypeInfo))]
+    pub enum Error {
+        /// The user is already exists.
+        UserAlreadyExists,
+        /// Nounce Already Exists
+        NounceAlreadyExists,
+    }
+
+    pub type Result<T> = core::result::Result<T, Error>;
+
+    /// Events that are emitted after calls.
+    #[ink(event)]
+    pub struct UserCreated {
+        #[ink(topic)]
+        user: AccountId,
+    }
+    #[ink(event)]
+    pub struct RequestCreated {
+        #[ink(topic)]
+        request_id: u64,
+        #[ink(topic)]
+        addressed_to: AccountId,
+        #[ink(topic)]
+        sent_by: AccountId,
+    }
+    #[ink(event)]
+    pub struct ReplyCreated {
+        #[ink(topic)]
+        reply_id: u64,
+        #[ink(topic)]
+        request_id: u64,
+        #[ink(topic)]
+        addressed_to: AccountId,
+    }
+
+    #[ink(event)]
+    pub struct VaultCreated {
+        #[ink(topic)]
+        owner: AccountId,
+    }
+
+    #[ink(event)]
+    pub struct VaultRemoved {
+        #[ink(topic)]
+        owner: AccountId,
+    }
+    #[ink(event)]
+    pub struct ShareCreated {
+        #[ink(topic)]
+        file_id: String,
+        #[ink(topic)]
+        file_name: String,
+        #[ink(topic)]
+        ipfs_path: String,
+        #[ink(topic)]
+        sent_to: AccountId,
+        #[ink(topic)]
+        file_size: u64,
+        #[ink(topic)]
+        sent_at: Timestamp,
+        #[ink(topic)]
+        sent_by: AccountId,
+    }
+
+    #[derive(scale::Encode, scale::Decode, Debug, PartialEq, Eq, Clone)]
+    #[cfg_attr(
+        feature = "std",
+        derive(scale_info::TypeInfo, ink::storage::traits::StorageLayout)
+    )]
+    pub struct User {
+        email: String,
+        phone: String,
+        address: AccountId,
+    }
+
+    impl Default for User {
+        fn default() -> Self {
+            Self {
+                email: String::from(""),
+                phone: String::from(""),
+                address: AccountId::from([0x0; 32]),
+            }
+        }
+    }
+
+    #[derive(scale::Encode, scale::Decode, Debug, PartialEq, Eq, Clone)]
+    #[cfg_attr(
+        feature = "std",
+        derive(scale_info::TypeInfo, ink::storage::traits::StorageLayout)
+    )]
+    pub struct Request {
+        msg: String,
+        addressed_to: AccountId,
+        sent_by: AccountId,
+        sent_at: Timestamp,
+        request_id: u64,
+    }
+
+    impl Default for Request {
+        fn default() -> Self {
+            Self {
+                msg: String::from(""),
+                addressed_to: AccountId::from([0x0; 32]),
+                sent_by: AccountId::from([0x0; 32]),
+                sent_at: Timestamp::default(),
+                request_id: 0,
+            }
+        }
+    }
+
+    #[derive(scale::Encode, scale::Decode, Debug, PartialEq, Eq, Clone)]
+    #[cfg_attr(
+        feature = "std",
+        derive(scale_info::TypeInfo, ink::storage::traits::StorageLayout)
+    )]
+    pub struct Reply {
+        msg: String,
+        sent_by: AccountId,
+        sent_at: Timestamp,
+        request_id: u64,
+        reply_id: u64,
+    }
+
+    impl Default for Reply {
+        fn default() -> Self {
+            Self {
+                msg: String::from(""),
+                sent_by: AccountId::from([0x0; 32]),
+                sent_at: Timestamp::default(),
+                request_id: 0,
+                reply_id: 0,
+            }
+        }
+    }
+
+    #[derive(scale::Encode, scale::Decode, Debug, PartialEq, Eq, Clone)]
+    #[cfg_attr(
+        feature = "std",
+        derive(scale_info::TypeInfo, ink::storage::traits::StorageLayout)
+    )]
+    pub struct Vault {
+        owner: AccountId,
+        nounce: String,
+    }
+
+    impl Default for Vault {
+        fn default() -> Self {
+            Self {
+                owner: AccountId::from([0x0; 32]),
+                nounce: String::from(""),
+            }
+        }
+    }
+
+    #[derive(scale::Encode, scale::Decode, Debug, PartialEq, Eq, Clone)]
+    #[cfg_attr(
+        feature = "std",
+        derive(scale_info::TypeInfo, ink::storage::traits::StorageLayout)
+    )]
+    pub struct Share {
+        file_id: String,
+        file_name: String,
+        ipfs_path: String,
+        sent_to: AccountId,
+        file_size: u64,
+        sent_at: Timestamp,
+        sent_by: AccountId,
+    } 
+
+    impl Default for Share {
+        fn default() -> Self {
+            Self {
+                file_id: String::from(""),
+                file_name: String::from(""),
+                ipfs_path: String::from(""),
+                sent_to: AccountId::from([0x0; 32]),
+                file_size: 0,
+                sent_at: Timestamp::default(),
+                sent_by: AccountId::from([0x0; 32]),
+            }
+        }
+    }
+
     #[ink(storage)]
     pub struct Vcloud {
-        /// Stores a single `bool` value on the storage.
-        value: bool,
+        users: Mapping<AccountId, User>,
+        users_items: Vec<AccountId>,
+        requests: Mapping<u64, Request>,
+        requests_items: Vec<u64>,
+        replies: Mapping<u64, Reply>,
+        replies_items: Vec<u64>,
+        vault: Mapping<AccountId, String>,
+        shared: Mapping<u64, Share>,
+        shared_items: Vec<u64>,
     }
 
     impl Vcloud {
-        /// Constructor that initializes the `bool` value to the given `init_value`.
         #[ink(constructor)]
-        pub fn new(init_value: bool) -> Self {
-            Self { value: init_value }
+        pub fn new() -> Self {
+            Self {
+                users: Mapping::new(),
+                users_items: Vec::new(),
+                requests: Mapping::new(),
+                requests_items: Vec::new(),
+                replies: Mapping::new(),
+                replies_items: Vec::new(),
+                vault: Mapping::new(),
+            }
         }
-
-        /// Constructor that initializes the `bool` value to `false`.
-        ///
-        /// Constructors can delegate to other constructors.
-        #[ink(constructor)]
-        pub fn default() -> Self {
-            Self::new(Default::default())
-        }
-
-        /// A message that can be called on instantiated contracts.
-        /// This one flips the value of the stored `bool` from `true`
-        /// to `false` and vice versa.
+        /// add new user
         #[ink(message)]
-        pub fn flip(&mut self) {
-            self.value = !self.value;
+        pub fn add_user(&mut self, email: String, phone: String) -> Result<()> {
+            let caller = self.env().caller();
+            let user = User {
+                email,
+                phone,
+                address: caller,
+            };
+            if self.users.contains(&caller) {
+                return Err(Error::UserAlreadyExists);
+            }
+            self.users.insert(caller, &user);
+            self.users_items.push(caller);
+            self.env().emit_event(UserCreated { user: caller });
+            Ok(())
         }
-
-        /// Simply returns the current value of our `bool`.
+        /// get user
         #[ink(message)]
-        pub fn get(&self) -> bool {
-            self.value
+        pub fn get_user(&self, user: AccountId) -> Option<User> {
+            if !self.users.contains(&user) {
+                return None;
+            }
+            Some(self.users.get(&user).unwrap())
         }
-    }
-
-    /// Unit tests in Rust are normally defined within such a `#[cfg(test)]`
-    /// module and test functions are marked with a `#[test]` attribute.
-    /// The below code is technically just normal Rust code.
-    #[cfg(test)]
-    mod tests {
-        /// Imports all the definitions from the outer scope so we can use them here.
-        use super::*;
-
-        /// We test if the default constructor does its job.
-        #[ink::test]
-        fn default_works() {
-            let vcloud = Vcloud::default();
-            assert_eq!(vcloud.get(), false);
+        /// get all users
+        #[ink(message)]
+        pub fn get_users(&self) -> Vec<User> {
+            let mut users = Vec::new();
+            for user in self.users_items.iter() {
+                users.push(self.users.get(user).unwrap());
+            }
+            users
+        }
+        /// create new document request
+        #[ink(message)]
+        pub fn create_request(
+            &mut self,
+            msg: String,
+            addressed_to: AccountId,
+            request_id: u64,
+        ) -> Result<()> {
+            let caller = self.env().caller();
+            let request = Request {
+                msg,
+                addressed_to,
+                sent_by: caller,
+                sent_at: self.env().block_timestamp(),
+                request_id,
+            };
+            self.requests.insert(request.request_id, &request);
+            self.requests_items.push(request.request_id);
+            self.env().emit_event(RequestCreated {
+                request_id,
+                addressed_to,
+                sent_by: caller.clone(),
+            });
+            Ok(())
+        }
+        ///get request
+        #[ink(message)]
+        pub fn get_request(&self, request_id: u64) -> Option<Request> {
+            if !self.requests.contains(&request_id) {
+                return None;
+            }
+            Some(self.requests.get(&request_id).unwrap())
+        }
+        /// get all requests
+        #[ink(message)]
+        pub fn get_requests(&self) -> Vec<Request> {
+            let mut requests = Vec::new();
+            for request_id in self.requests_items.iter() {
+                let request = self.requests.get(request_id).unwrap();
+                requests.push(request);
+            }
+            requests
         }
 
-        /// We test a simple use case of our contract.
-        #[ink::test]
-        fn it_works() {
-            let mut vcloud = Vcloud::new(false);
-            assert_eq!(vcloud.get(), false);
-            vcloud.flip();
-            assert_eq!(vcloud.get(), true);
+        /// get all requests by sent_by
+        #[ink(message)]
+        pub fn get_request_by_sent_by(&self, sent_by: AccountId) -> Vec<Request> {
+            let mut requests = Vec::new();
+            for request_id in self.requests_items.iter() {
+                let request = self.requests.get(request_id).unwrap();
+                if request.addressed_to == sent_by {
+                    requests.push(request);
+                }
+            }
+            requests
         }
-    }
 
+        /// get all requests by addressed_to
+        #[ink(message)]
+        pub fn get_requests_by_addressed_to(&self, addressed_to: AccountId) -> Vec<Request> {
+            let mut requests = Vec::new();
+            for request_id in self.requests_items.iter() {
+                let request = self.requests.get(request_id).unwrap();
+                if request.addressed_to == addressed_to {
+                    requests.push(request);
+                }
+            }
+            requests
+        }
 
-    /// This is how you'd write end-to-end (E2E) or integration tests for ink! contracts.
-    ///
-    /// When running these you need to make sure that you:
-    /// - Compile the tests with the `e2e-tests` feature flag enabled (`--features e2e-tests`)
-    /// - Are running a Substrate node which contains `pallet-contracts` in the background
-    #[cfg(all(test, feature = "e2e-tests"))]
-    mod e2e_tests {
-        /// Imports all the definitions from the outer scope so we can use them here.
-        use super::*;
+        /// create new document reply
+        #[ink(message)]
+        pub fn create_reply(&mut self, msg: String, request_id: u64, reply_id: u64) -> Result<()> {
+            let caller = self.env().caller();
+            let reply = Reply {
+                msg,
+                sent_by: caller,
+                sent_at: self.env().block_timestamp(),
+                request_id: request_id.clone(),
+                reply_id,
+            };
+            self.replies.insert(reply.reply_id, &reply);
+            self.replies_items.push(reply.reply_id);
+            self.env().emit_event(ReplyCreated {
+                reply_id,
+                request_id,
+                addressed_to: caller.clone(),
+            });
+            Ok(())
+        }
+        ///get reply
+        #[ink(message)]
+        pub fn get_reply(&self, reply_id: u64) -> Option<Reply> {
+            if !self.replies.contains(&reply_id) {
+                return None;
+            }
+            Some(self.replies.get(&reply_id).unwrap())
+        }
+        /// get all replies
+        #[ink(message)]
+        pub fn get_all_replies(&self) -> Vec<Reply> {
+            let mut replies = Vec::new();
+            for reply_id in self.replies_items.iter() {
+                let reply = self.replies.get(reply_id).unwrap();
+                replies.push(reply);
+            }
+            replies
+        }
+        /// get all replies by each request id
+        #[ink(message)]
+        pub fn get_replies_by_request(&self, request_id: u64) -> Vec<Reply> {
+            let mut replies = Vec::new();
+            for reply_id in self.replies_items.iter() {
+                let reply = self.replies.get(reply_id).unwrap();
+                if reply.request_id == request_id {
+                    replies.push(reply);
+                }
+            }
+            replies
+        }
 
-        /// A helper function used for calling contract messages.
-        use ink_e2e::build_message;
-
-        /// The End-to-End test `Result` type.
-        type E2EResult<T> = std::result::Result<T, Box<dyn std::error::Error>>;
-
-        /// We test that we can upload and instantiate the contract using its default constructor.
-        #[ink_e2e::test]
-        async fn default_works(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
-            // Given
-            let constructor = VcloudRef::default();
-
-            // When
-            let contract_account_id = client
-                .instantiate("vcloud", &ink_e2e::alice(), constructor, 0, None)
-                .await
-                .expect("instantiate failed")
-                .account_id;
-
-            // Then
-            let get = build_message::<VcloudRef>(contract_account_id.clone())
-                .call(|vcloud| vcloud.get());
-            let get_result = client.call_dry_run(&ink_e2e::alice(), &get, 0, None).await;
-            assert!(matches!(get_result.return_value(), false));
-
+        /// add nounce to vault
+        #[ink(message)]
+        pub fn add_nounce(&mut self, nounce: String) -> Result<()> {
+            let caller = self.env().caller();
+            if self.vault.contains(&caller) {
+                return Err(Error::UserAlreadyExists);
+            }
+            self.vault.insert(caller, &nounce);
+            self.env().emit_event(VaultCreated { owner: caller });
             Ok(())
         }
 
-        /// We test that we can read and write a value from the on-chain contract contract.
-        #[ink_e2e::test]
-        async fn it_works(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
-            // Given
-            let constructor = VcloudRef::new(false);
-            let contract_account_id = client
-                .instantiate("vcloud", &ink_e2e::bob(), constructor, 0, None)
-                .await
-                .expect("instantiate failed")
-                .account_id;
+        /// get nounce from vault
+        #[ink(message)]
+        pub fn get_nounce(&self) -> Option<String> {
+            let caller = self.env().caller();
+            if !self.vault.contains(&caller) {
+                return None;
+            }
+            Some(self.vault.get(&caller).unwrap())
+        }
 
-            let get = build_message::<VcloudRef>(contract_account_id.clone())
-                .call(|vcloud| vcloud.get());
-            let get_result = client.call_dry_run(&ink_e2e::bob(), &get, 0, None).await;
-            assert!(matches!(get_result.return_value(), false));
-
-            // When
-            let flip = build_message::<VcloudRef>(contract_account_id.clone())
-                .call(|vcloud| vcloud.flip());
-            let _flip_result = client
-                .call(&ink_e2e::bob(), flip, 0, None)
-                .await
-                .expect("flip failed");
-
-            // Then
-            let get = build_message::<VcloudRef>(contract_account_id.clone())
-                .call(|vcloud| vcloud.get());
-            let get_result = client.call_dry_run(&ink_e2e::bob(), &get, 0, None).await;
-            assert!(matches!(get_result.return_value(), true));
-
+        /// remove nounce
+        #[ink(message)]
+        pub fn remove_nounce(&mut self) -> Result<()> {
+            let caller = self.env().caller();
+            if !self.vault.contains(&caller) {
+                return Err(Error::UserAlreadyExists);
+            }
+            self.vault.remove(&caller);
+            self.env().emit_event(VaultRemoved { owner: caller });
             Ok(())
         }
+        /// create a share for a document present in our web3 storage with a wallet address or email address
+        #[ink(message)]
+        pub fn create_share(&mut self, file_id: String, file_name: String, sent_to: AccountId, ipfs_path: String, sent_by: AccountId, file_size: u64) -> Result<()> {
+            let caller = self.env().caller();
+            let share = Share {
+                file_id,
+                file_name,
+                sent_to,
+                ipfs_path,
+                sent_by: caller,
+                sent_at: self.env().block_timestamp(),
+                file_size,
+            };
+            self.shares.insert(share.file_id.clone(), &share);
+            self.shares_items.push(share.file_id.clone());
+            self.env().emit_event(File Shared Succefully {
+                file_id,
+                file_name,
+                sent_to,
+                ipfs_path,
+                sent_by: caller.clone(),
+                file_size,
+                sent_at: self.env().block_timestamp(),
+            });
+            Ok(())
+        }
+
+        /// get shared Files
+        #[ink(message)]
+        pub fn get_shared_files(&self) -> Vec<Share> {
+            let mut shares = Vec::new();
+            for file_id in self.shares_items.iter() {
+                let share = self.shares.get(file_id).unwrap();
+                shares.push(share);
+            }
+            shares
+        }
+
+        /// get shared Files by sent_by
+        #[ink(message)]
+        pub fn get_shared_files_by_sent_by(&self, sent_by: AccountId) -> Vec<Share> {
+            let mut shares = Vec::new();
+            for file_id in self.shares_items.iter() {
+                let share = self.shares.get(file_id).unwrap();
+                if share.sent_by == sent_by {
+                    shares.push(share);
+                }
+            }
+            shares
+        }
+
+        /// get shared Files by sent_to
+        #[ink(message)] 
+        pub fn get_shared_files_by_sent_to(&self, sent_to: AccountId) -> Vec<Share> {
+            let mut shares = Vec::new();
+            for file_id in self.shares_items.iter() {
+                let share = self.shares.get(file_id).unwrap();
+                if share.sent_to == sent_to {
+                    shares.push(share);
+                }
+            }
+            shares
+        }
     }
+
 }

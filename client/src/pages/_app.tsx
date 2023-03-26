@@ -4,11 +4,11 @@ import { getDeployments } from "@/deployments";
 import "@/styles/globals.css";
 import { AppPropsWithLayout } from "@/types/Layout";
 import { alephzeroTestnet, UseInkathonProvider } from "@scio-labs/use-inkathon";
-import { Inconsolata, Poppins } from "next/font/google";
+import { Inconsolata } from "next/font/google";
 import Head from "next/head";
 import { Toaster } from "react-hot-toast";
 
-const poppins = Inconsolata({
+const inconsolata = Inconsolata({
   weight: ["400", "500", "600", "700"],
   subsets: ["latin"],
 });
@@ -16,7 +16,7 @@ const poppins = Inconsolata({
 export default function App({ Component, pageProps }: AppPropsWithLayout) {
   const getLayout = Component.getLayout || ((page) => page);
   return (
-    <main className={poppins.className}>
+    <main className={inconsolata.className}>
       <Head>
         <meta
           name="viewport"
@@ -25,7 +25,7 @@ export default function App({ Component, pageProps }: AppPropsWithLayout) {
         <style>
           {`
           :root {
-            --font-poppins: ${poppins.style.fontFamily}, 'Poppins';
+            --font-inconsolata: ${inconsolata.style.fontFamily}, 'Inconsolata';
           }
           `}
         </style>

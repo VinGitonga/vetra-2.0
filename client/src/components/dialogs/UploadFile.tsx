@@ -7,13 +7,15 @@ import Badge from "../badge";
 import PrimaryButton from "../buttons/PrimaryButton";
 import toast from "react-hot-toast";
 import axios, { AxiosProgressEvent } from "axios";
-import { generateRandomNumbers } from "@/utils/utils";
+import { encryptBlob, generateRandomNumbers } from "@/utils/utils";
 import { estuary_prod_api_key } from "../../../env";
 import useDb from "@/hooks/useDb";
 import { IEstuaryResponseData } from "@/types/Estuary";
 import { IBlocFile } from "@/types/BlocFile";
 import { IBloc } from "@/types/Bloc";
 import SelectBloc from "./SelectBloc";
+import useApi from "@/hooks/useApi";
+import { encryptBlobSecretKey } from "@/utils/locks";
 
 interface UploadFileProps {
   isOpen: boolean;
@@ -39,6 +41,7 @@ const UploadFile = ({ isOpen, closeModal, setIsOpen }: UploadFileProps) => {
   const [localNodeUrl] = useState<string>("http://localhost:3004");
   const [productionNodeUrl] = useState<string>("https://api.estuary.tech");
   const [blocs, setBlocs] = useState<IBloc[]>([]);
+  const { getUserSecret } = useApi();
 
   const resetFields = () => {
     setFiles([]);
@@ -125,13 +128,56 @@ const UploadFile = ({ isOpen, closeModal, setIsOpen }: UploadFileProps) => {
       return;
     }
 
+    // get the secret
+    const secret = await getUserSecret();
+
+
+    // encrypt file
+
+    const { blob, iv, exportedkey } = await encryptBlob(
+      new Blob([files[0].fileDataUrl])
+    );
+
+    const stringExportedKey = JSON.stringify(exportedkey);
+
+    let encryptedSecret: string | null = null;
+
+    if (!secret) {
+      toast.error("Please set your secret first");
+      return;
+    }
+
+    encryptedSecret = await encryptBlobSecretKey(secret, stringExportedKey);
+
+    // const decryptedBlob = await decryptBlob(blob, iv, exportedkey);
+
+    // console.log(decryptedBlob);
+
+    // // generate decrypted blob with its file type
+    // const decryptedFile = new File([decryptedBlob], files[0].name, {
+    //   type: files[0].fileType,
+    // });
+
+    // console.log(decryptedFile);
+
+    // // download the decrypted file
+    // const url = window.URL.createObjectURL(decryptedFile);
+
+    // const link = document.createElement("a");
+
+    // link.href = url;
+
+    // link.setAttribute("download", files[0].name);
+
+    // document.body.appendChild(link);
+
+    // link.click();
+
+    // link.remove();
+
     const formData = new FormData();
 
-    formData.append(
-      "data",
-      new Blob([files[0].fileDataUrl as ArrayBuffer]),
-      files[0].name
-    );
+    formData.append("data", blob, files[0].name);
 
     const config = {
       method: "post",
@@ -173,6 +219,8 @@ const UploadFile = ({ isOpen, closeModal, setIsOpen }: UploadFileProps) => {
           currentBloc: selectedFolder?.entityId,
           created,
           updated: created,
+          encryptedKey: encryptedSecret,
+          iv,
         };
 
         const dbResp = await saveFileStorageInfo(fileInfo);
