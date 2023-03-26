@@ -15,7 +15,6 @@ import { useState } from "react";
 import { useRouter } from "next/router";
 import { generateRandomNumbers } from "@/utils/utils";
 
-
 const CreateRequest: NextPageWithLayout = () => {
   const [loading, setLoading] = useState<boolean>(false);
   const { activeAccount, activeSigner, api } = useInkathon();
@@ -31,19 +30,16 @@ const CreateRequest: NextPageWithLayout = () => {
     setAddress("");
   };
 
-
   const handleSendRequest = async () => {
-   
-
     if (!message) {
       toast.error("Message is required");
       return;
     }
-    if(!name){
+    if (!name) {
       toast.error("Name is required");
       return;
     }
-    if(!address){
+    if (!address) {
       toast.error("Address is required");
       return;
     }
@@ -70,7 +66,7 @@ const CreateRequest: NextPageWithLayout = () => {
             router.push("/my-requests");
           }
         }
-      )
+      );
     } catch (err) {
       console.log(err);
       toast.error("Something went wrong");
@@ -91,8 +87,7 @@ const CreateRequest: NextPageWithLayout = () => {
           <div className="w-full max-w-md mx-auto mt-6">
             <form>
               <div>
-                <label className="block mb-2 text-sm font-medium text-gray-900"
-                >
+                <label className="block mb-2 text-sm font-medium text-gray-900">
                   Message
                 </label>
                 <textarea
@@ -117,7 +112,6 @@ const CreateRequest: NextPageWithLayout = () => {
                     placeholder="Bonnie Green"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-
                   />
                 </div>
               </div>
@@ -141,11 +135,13 @@ const CreateRequest: NextPageWithLayout = () => {
                   Paste the Wallet Address of the Recipient
                 </p>
               </div>
-              <PrimaryButton text="Send Request"
+              <PrimaryButton
+                text="Send Request"
                 Icon={IoRocketSharp}
                 onClick={handleSendRequest}
-                isloading={loading}
-                loadingText={"Sending the request"} />
+                isLoading={loading}
+                loadingText={"Sending the request"}
+              />
             </form>
           </div>
         </div>
