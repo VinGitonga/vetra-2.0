@@ -12,6 +12,8 @@ mod vcloud {
     pub enum Error {
         /// The user is already exists.
         UserAlreadyExists,
+        /// Nounce Already Exists
+        NounceAlreadyExists,
     }
 
     pub type Result<T> = core::result::Result<T, Error>;
@@ -39,6 +41,18 @@ mod vcloud {
         request_id: u64,
         #[ink(topic)]
         addressed_to: AccountId,
+    }
+
+    #[ink(event)]
+    pub struct VaultCreated {
+        #[ink(topic)]
+        owner: AccountId,
+    }
+
+    #[ink(event)]
+    pub struct VaultRemoved {
+        #[ink(topic)]
+        owner: AccountId,
     }
 
     #[derive(scale::Encode, scale::Decode, Debug, PartialEq, Eq, Clone)]
@@ -94,12 +108,9 @@ mod vcloud {
     )]
     pub struct Reply {
         msg: String,
-        addressed_to: AccountId,
         sent_by: AccountId,
         sent_at: Timestamp,
         request_id: u64,
-        document_name: String,
-        document_cid: String,
         reply_id: u64,
     }
 
@@ -107,13 +118,29 @@ mod vcloud {
         fn default() -> Self {
             Self {
                 msg: String::from(""),
-                addressed_to: AccountId::from([0x0; 32]),
                 sent_by: AccountId::from([0x0; 32]),
                 sent_at: Timestamp::default(),
                 request_id: 0,
-                document_name: String::from(""),
-                document_cid: String::from(""),
                 reply_id: 0,
+            }
+        }
+    }
+
+    #[derive(scale::Encode, scale::Decode, Debug, PartialEq, Eq, Clone)]
+    #[cfg_attr(
+        feature = "std",
+        derive(scale_info::TypeInfo, ink::storage::traits::StorageLayout)
+    )]
+    pub struct Vault {
+        owner: AccountId,
+        nounce: String,
+    }
+
+    impl Default for Vault {
+        fn default() -> Self {
+            Self {
+                owner: AccountId::from([0x0; 32]),
+                nounce: String::from(""),
             }
         }
     }
@@ -126,6 +153,7 @@ mod vcloud {
         requests_items: Vec<u64>,
         replies: Mapping<u64, Reply>,
         replies_items: Vec<u64>,
+        vault: Mapping<AccountId, String>,
     }
 
     impl Vcloud {
@@ -138,6 +166,7 @@ mod vcloud {
                 requests_items: Vec::new(),
                 replies: Mapping::new(),
                 replies_items: Vec::new(),
+                vault: Mapping::new(),
             }
         }
         /// add new user
@@ -246,23 +275,13 @@ mod vcloud {
 
         /// create new document reply
         #[ink(message)]
-        pub fn create_reply(
-            &mut self,
-            msg: String,
-            document_name: String,
-            document_cid: String,
-            request_id: u64,
-            reply_id: u64,
-        ) -> Result<()> {
+        pub fn create_reply(&mut self, msg: String, request_id: u64, reply_id: u64) -> Result<()> {
             let caller = self.env().caller();
             let reply = Reply {
                 msg,
-                addressed_to: self.requests.get(&request_id).unwrap().addressed_to,
                 sent_by: caller,
                 sent_at: self.env().block_timestamp(),
                 request_id: request_id.clone(),
-                document_name,
-                document_cid,
                 reply_id,
             };
             self.replies.insert(reply.reply_id, &reply);
@@ -292,29 +311,51 @@ mod vcloud {
             }
             replies
         }
-        /// get all replies by sent_by
+        /// get all replies by each request id
         #[ink(message)]
-        pub fn get_reply_by_sent_by(&self, sent_by: AccountId) -> Vec<Reply> {
+        pub fn get_replies_by_request(&self, request_id: u64) -> Vec<Reply> {
             let mut replies = Vec::new();
             for reply_id in self.replies_items.iter() {
                 let reply = self.replies.get(reply_id).unwrap();
-                if reply.sent_by == sent_by {
+                if reply.request_id == request_id {
                     replies.push(reply);
                 }
             }
             replies
         }
-        /// get all replies by addressed_to
+
+        /// add nounce to vault
         #[ink(message)]
-        pub fn get_reply_by_addressed_to(&self, addressed_to: AccountId) -> Vec<Reply> {
-            let mut replies = Vec::new();
-            for reply_id in self.replies_items.iter() {
-                let reply = self.replies.get(reply_id).unwrap();
-                if reply.addressed_to == addressed_to {
-                    replies.push(reply);
-                }
+        pub fn add_nounce(&mut self, nounce: String) -> Result<()> {
+            let caller = self.env().caller();
+            if self.vault.contains(&caller) {
+                return Err(Error::UserAlreadyExists);
             }
-            replies
+            self.vault.insert(caller, &nounce);
+            self.env().emit_event(VaultCreated { owner: caller });
+            Ok(())
+        }
+
+        /// get nounce from vault
+        #[ink(message)]
+        pub fn get_nounce(&self) -> Option<String> {
+            let caller = self.env().caller();
+            if !self.vault.contains(&caller) {
+                return None;
+            }
+            Some(self.vault.get(&caller).unwrap())
+        }
+
+        /// remove nounce
+        #[ink(message)]
+        pub fn remove_nounce(&mut self) -> Result<()> {
+            let caller = self.env().caller();
+            if !self.vault.contains(&caller) {
+                return Err(Error::UserAlreadyExists);
+            }
+            self.vault.remove(&caller);
+            self.env().emit_event(VaultRemoved { owner: caller });
+            Ok(())
         }
     }
 }

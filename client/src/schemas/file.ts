@@ -43,6 +43,12 @@ const fileSchema = new Schema(
     },
     updated : {
       type: "number",
+    },
+    encryptedKey: {
+      type: "string",
+    },
+    iv: {
+      type: "string",
     }
   },
   {

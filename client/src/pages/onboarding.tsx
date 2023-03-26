@@ -10,7 +10,6 @@ import {
   useRegisteredContract,
 } from "@scio-labs/use-inkathon";
 import { ContractID } from "@/types/Contracts";
-import ConnectButton from "@/components/web3/ConnectButton";
 import { NextPageWithLayout } from "@/types/Layout";
 import OnboardingLayout from "@/layouts/Onboarding";
 
@@ -73,7 +72,7 @@ const Onboarding: NextPageWithLayout = () => {
             router.push("/dashboard");
           }
         }
-      );
+      )
     } catch (err) {
       console.log(err);
       toast.error("Something went wrong");

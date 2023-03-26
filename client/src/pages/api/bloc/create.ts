@@ -1,11 +1,11 @@
+import { withSessionRoute } from "@/lib/withSession";
 import blocSchema from "@/schemas/bloc";
 import redisClient from "@/utils/redis-client";
 import type { NextApiRequest, NextApiResponse } from "next";
 
-export default async function handler(
-  req: NextApiRequest,
-  res: NextApiResponse
-) {
+export default withSessionRoute(handler);
+
+async function handler(req: NextApiRequest, res: NextApiResponse) {
   switch (req.method) {
     case "POST":
       return createNewBloc(req, res);
@@ -15,11 +15,21 @@ export default async function handler(
 async function createNewBloc(req: NextApiRequest, res: NextApiResponse) {
   const redis = new redisClient();
   const client = redis.initClient();
+  const user = req.session.user;
+
+  if (!user) {
+    res.status(401).json({
+      status: "error",
+      msg: "Unauthorized",
+    });
+    return;
+  }
 
   try {
     const blocRepo = (await client).fetchRepository(blocSchema);
 
-    const { displayName, ownerAddress, allowedAddresses, created, updated } = req.body;
+    const { displayName, ownerAddress, allowedAddresses, created, updated } =
+      req.body;
 
     const newBloc = blocRepo.createEntity({
       displayName,
