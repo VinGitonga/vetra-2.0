@@ -35,7 +35,13 @@ export async function encryptBlob(blob: Blob) {
 
   let exportedkey = await crypto.subtle.exportKey("jwk", key);
 
-  return [new Blob([result]), iv.toString(), exportedkey];
+  let returnVals = {
+    blob: new Blob([result]),
+    iv: iv.toString(),
+    exportedkey: exportedkey,
+  }
+
+  return returnVals;
 }
 
 export async function decryptBlob(

@@ -1,3 +1,3 @@
 export enum ContractID {
-    User = "User",
+    Vetra = "Vetra",
 }

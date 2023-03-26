@@ -30,8 +30,6 @@ mod vcloud {
         addressed_to: AccountId,
         #[ink(topic)]
         sent_by: AccountId,
-        #[ink(topic)]
-        msg: String,
     }
     #[ink(event)]
     pub struct ReplyCreated {
@@ -41,10 +39,6 @@ mod vcloud {
         request_id: u64,
         #[ink(topic)]
         addressed_to: AccountId,
-        #[ink(topic)]
-        sent_by: AccountId,
-        #[ink(topic)]
-        msg: String,
     }
 
     #[derive(scale::Encode, scale::Decode, Debug, PartialEq, Eq, Clone)]
@@ -119,6 +113,7 @@ mod vcloud {
                 request_id: 0,
                 document_name: String::from(""),
                 document_cid: String::from(""),
+                reply_id: 0,
             }
         }
     }
@@ -201,13 +196,12 @@ mod vcloud {
                 request_id,
                 addressed_to,
                 sent_by: caller.clone(),
-                msg,
             });
             Ok(())
         }
         ///get request
         #[ink(message)]
-        pub fn get_request(&self, request_id: u64) -> Request {
+        pub fn get_request(&self, request_id: u64) -> Option<Request> {
             if !self.requests.contains(&request_id) {
                 return None;
             }
@@ -230,7 +224,7 @@ mod vcloud {
             let mut requests = Vec::new();
             for request_id in self.requests_items.iter() {
                 let request = self.requests.get(request_id).unwrap();
-                if request.addressed_to == user {
+                if request.addressed_to == sent_by {
                     requests.push(request);
                 }
             }
@@ -239,11 +233,11 @@ mod vcloud {
 
         /// get all requests by addressed_to
         #[ink(message)]
-        pub fn get_request_by_addressed_to(&self, addressed_to: AccountId) -> Vec<Request> {
+        pub fn get_requests_by_addressed_to(&self, addressed_to: AccountId) -> Vec<Request> {
             let mut requests = Vec::new();
             for request_id in self.requests_items.iter() {
                 let request = self.requests.get(request_id).unwrap();
-                if request.addressed_to == user {
+                if request.addressed_to == addressed_to {
                     requests.push(request);
                 }
             }
@@ -277,15 +271,12 @@ mod vcloud {
                 reply_id,
                 request_id,
                 addressed_to: caller.clone(),
-                sent_by: caller.clone(),
-                msg,
-
             });
             Ok(())
         }
         ///get reply
         #[ink(message)]
-        pub fn get_reply(&self, reply_id: u64) -> Reply {
+        pub fn get_reply(&self, reply_id: u64) -> Option<Reply> {
             if !self.replies.contains(&reply_id) {
                 return None;
             }
@@ -307,7 +298,7 @@ mod vcloud {
             let mut replies = Vec::new();
             for reply_id in self.replies_items.iter() {
                 let reply = self.replies.get(reply_id).unwrap();
-                if reply.sent_by == user {
+                if reply.sent_by == sent_by {
                     replies.push(reply);
                 }
             }
@@ -319,12 +310,11 @@ mod vcloud {
             let mut replies = Vec::new();
             for reply_id in self.replies_items.iter() {
                 let reply = self.replies.get(reply_id).unwrap();
-                if reply.addressed_to == user {
+                if reply.addressed_to == addressed_to {
                     replies.push(reply);
                 }
             }
             replies
         }
-
     }
 }

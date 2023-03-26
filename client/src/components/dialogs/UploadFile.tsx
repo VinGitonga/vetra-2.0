@@ -7,7 +7,7 @@ import Badge from "../badge";
 import PrimaryButton from "../buttons/PrimaryButton";
 import toast from "react-hot-toast";
 import axios, { AxiosProgressEvent } from "axios";
-import { generateRandomNumbers } from "@/utils/utils";
+import { decryptBlob, encryptBlob, generateRandomNumbers } from "@/utils/utils";
 import { estuary_prod_api_key } from "../../../env";
 import useDb from "@/hooks/useDb";
 import { IEstuaryResponseData } from "@/types/Estuary";
@@ -29,7 +29,7 @@ interface IFileInfo {
 }
 
 const UploadFile = ({ isOpen, closeModal, setIsOpen }: UploadFileProps) => {
-  const { activeAccount } = useInkathon();
+  const { activeAccount, activeSigner } = useInkathon();
   const { saveFileStorageInfo, getOwnerBlocs } = useDb();
   const [show, setShow] = useState(false);
   const [files, setFiles] = useState<IFileInfo[]>([]);
@@ -125,74 +125,104 @@ const UploadFile = ({ isOpen, closeModal, setIsOpen }: UploadFileProps) => {
       return;
     }
 
-    const formData = new FormData();
-
-    formData.append(
-      "data",
-      new Blob([files[0].fileDataUrl as ArrayBuffer]),
-      files[0].name
+    const { blob, iv, exportedkey } = await encryptBlob(
+      new Blob([files[0].fileDataUrl])
     );
 
-    const config = {
-      method: "post",
-      url: `${productionNodeUrl}/content/add`,
-      headers: {
-        Accept: "application/json",
-        Authorization: `Bearer ${estuary_prod_api_key}`,
-      },
-      data: formData,
-      onUploadProgress,
-    };
+    const decryptedBlob = await decryptBlob(blob, iv, exportedkey);
 
-    const toastId = generateRandomNumbers().toString();
+    console.log(decryptedBlob);
 
-    try {
-      toast.loading("Uploading file...", { id: toastId });
-      setStartUpload(true);
+    // generate decrypted blob with its file type
+    const decryptedFile = new File([decryptedBlob], files[0].name, {
+      type: files[0].fileType,
+    });
 
-      const resp = await axios(config);
+    console.log(decryptedFile);
 
-      if (resp.status === 200) {
-        toast?.success("File uploaded successfully", { id: toastId });
-        // save data to offchain db
-        const ipfsData = resp.data as IEstuaryResponseData;
+    // download the decrypted file
+    const url = window.URL.createObjectURL(decryptedFile);
 
-        const created = new Date().valueOf();
+    const link = document.createElement("a");
 
-        const fileInfo: IBlocFile = {
-          displayName: files[0].name,
-          ownerAddress: activeAccount.address,
-          allowedAddresses: [activeAccount.address],
-          size: files[0].size,
-          type: files[0].fileType,
-          fileCid: ipfsData.cid,
-          storageProviders: ipfsData.providers,
-          estuaryId: ipfsData.estuaryId,
-          estuaryRetrievalUrl: ipfsData.estuary_retrieval_url,
-          retrievalUrl: ipfsData.retrieval_url,
-          currentBloc: selectedFolder?.entityId,
-          created,
-          updated: created,
-        };
+    link.href = url;
 
-        const dbResp = await saveFileStorageInfo(fileInfo);
+    link.setAttribute("download", files[0].name);
 
-        if (dbResp.status === "ok") {
-          toast.success("File info saved successfully", { id: toastId });
-        } else {
-          toast.error("Error saving file info", { id: toastId });
-        }
-        resetFields();
-      } else {
-        toast.error("Error uploading file", { id: toastId });
-      }
-    } catch (err) {
-      console.log(err);
-      toast.error("Error uploading file", { id: toastId });
-    } finally {
-      setStartUpload(false);
-      toast.dismiss();
-    }
+    document.body.appendChild(link);
+
+    link.click();
+
+    // link.remove();
+
+    // const formData = new FormData();
+
+    // formData.append(
+    //   "data",
+    //   new Blob([files[0].fileDataUrl as ArrayBuffer]),
+    //   files[0].name
+    // );
+
+    // const config = {
+    //   method: "post",
+    //   url: `${productionNodeUrl}/content/add`,
+    //   headers: {
+    //     Accept: "application/json",
+    //     Authorization: `Bearer ${estuary_prod_api_key}`,
+    //   },
+    //   data: formData,
+    //   onUploadProgress,
+    // };
+
+    // const toastId = generateRandomNumbers().toString();
+
+    // try {
+    //   toast.loading("Uploading file...", { id: toastId });
+    //   setStartUpload(true);
+
+    //   const resp = await axios(config);
+
+    //   if (resp.status === 200) {
+    //     toast?.success("File uploaded successfully", { id: toastId });
+    //     // save data to offchain db
+    //     const ipfsData = resp.data as IEstuaryResponseData;
+
+    //     const created = new Date().valueOf();
+
+    //     const fileInfo: IBlocFile = {
+    //       displayName: files[0].name,
+    //       ownerAddress: activeAccount.address,
+    //       allowedAddresses: [activeAccount.address],
+    //       size: files[0].size,
+    //       type: files[0].fileType,
+    //       fileCid: ipfsData.cid,
+    //       storageProviders: ipfsData.providers,
+    //       estuaryId: ipfsData.estuaryId,
+    //       estuaryRetrievalUrl: ipfsData.estuary_retrieval_url,
+    //       retrievalUrl: ipfsData.retrieval_url,
+    //       currentBloc: selectedFolder?.entityId,
+    //       created,
+    //       updated: created,
+    //     };
+
+    //     const dbResp = await saveFileStorageInfo(fileInfo);
+
+    //     if (dbResp.status === "ok") {
+    //       toast.success("File info saved successfully", { id: toastId });
+    //     } else {
+    //       toast.error("Error saving file info", { id: toastId });
+    //     }
+    //     resetFields();
+    //   } else {
+    //     toast.error("Error uploading file", { id: toastId });
+    //   }
+    // } catch (err) {
+    //   console.log(err);
+    //   toast.error("Error uploading file", { id: toastId });
+    // } finally {
+    //   setStartUpload(false);
+    //   toast.dismiss();
+    // }
 
     // let formDatas: Array<FormData> = [];
 

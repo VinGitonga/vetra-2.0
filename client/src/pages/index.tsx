@@ -1,10 +1,25 @@
 import PrimaryButton from "@/components/buttons/PrimaryButton";
-import ConnectButton from "@/components/web3/ConnectButton";
+import { useAuth } from "@/hooks/store/useAuth";
+import useDidHydrate from "@/hooks/useDidHydrate";
+import OnboardingLayout from "@/layouts/Onboarding";
+import { NextPageWithLayout } from "@/types/Layout";
 import Head from "next/head";
 import { useRouter } from "next/router";
+import { useMemo } from "react";
 
-export default function Home() {
+const Home: NextPageWithLayout = () => {
   const router = useRouter();
+  const { didHydrate } = useDidHydrate();
+
+  const userData = useAuth((state) => state.user);
+
+  const user = useMemo(() => {
+    if (didHydrate) {
+      return userData;
+    }
+    return null;xp
+  }, [didHydrate, userData]);
+
   return (
     <>
       <Head>
@@ -30,14 +45,17 @@ export default function Home() {
               </p>
 
               <div className="flex flex-col mt-8 space-y-3 sm:-mx-2 sm:flex-row sm:justify-center sm:space-y-0 space-x-4">
-                <ConnectButton />
                 <PrimaryButton
-                  text="Go To Dashboard"
+                  text={
+                    user ? "Go to Dashboard" : "Get Started with Vetra Cloud"
+                  }
                   isWidthFull={false}
                   style={{
                     borderRadius: "25px",
                   }}
-                  onClick={() => router.push("/dashboard")}
+                  onClick={() =>
+                    router.push(user ? "/dashboard" : "/onboarding")
+                  }
                 />
               </div>
             </div>
@@ -46,4 +64,8 @@ export default function Home() {
       </section>
     </>
   );
-}
+};
+
+Home.getLayout = (page) => <OnboardingLayout>{page}</OnboardingLayout>;
+
+export default Home;
