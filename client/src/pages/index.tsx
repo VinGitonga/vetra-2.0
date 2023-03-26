@@ -17,7 +17,7 @@ const Home: NextPageWithLayout = () => {
     if (didHydrate) {
       return userData;
     }
-    return null;xp
+    return null;
   }, [didHydrate, userData]);
 
   return (
