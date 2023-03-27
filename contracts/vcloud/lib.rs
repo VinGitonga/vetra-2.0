@@ -57,17 +57,9 @@ mod vcloud {
     #[ink(event)]
     pub struct ShareCreated {
         #[ink(topic)]
-        file_id: String,
-        #[ink(topic)]
-        file_name: String,
-        #[ink(topic)]
         ipfs_path: String,
         #[ink(topic)]
         sent_to: AccountId,
-        #[ink(topic)]
-        file_size: u64,
-        #[ink(topic)]
-        sent_at: Timestamp,
         #[ink(topic)]
         sent_by: AccountId,
     }
@@ -175,7 +167,7 @@ mod vcloud {
         file_size: u64,
         sent_at: Timestamp,
         sent_by: AccountId,
-    } 
+    }
 
     impl Default for Share {
         fn default() -> Self {
@@ -200,8 +192,8 @@ mod vcloud {
         replies: Mapping<u64, Reply>,
         replies_items: Vec<u64>,
         vault: Mapping<AccountId, String>,
-        shared: Mapping<u64, Share>,
-        shared_items: Vec<u64>,
+        shared: Mapping<String, Share>,
+        shared_items: Vec<String>,
     }
 
     impl Vcloud {
@@ -215,6 +207,8 @@ mod vcloud {
                 replies: Mapping::new(),
                 replies_items: Vec::new(),
                 vault: Mapping::new(),
+                shared: Mapping::new(),
+                shared_items: Vec::new(),
             }
         }
         /// add new user
@@ -301,7 +295,7 @@ mod vcloud {
             let mut requests = Vec::new();
             for request_id in self.requests_items.iter() {
                 let request = self.requests.get(request_id).unwrap();
-                if request.addressed_to == sent_by {
+                if request.sent_by == sent_by {
                     requests.push(request);
                 }
             }
@@ -407,10 +401,17 @@ mod vcloud {
         }
         /// create a share for a document present in our web3 storage with a wallet address or email address
         #[ink(message)]
-        pub fn create_share(&mut self, file_id: String, file_name: String, sent_to: AccountId, ipfs_path: String, sent_by: AccountId, file_size: u64) -> Result<()> {
+        pub fn create_share(
+            &mut self,
+            file_id: String,
+            file_name: String,
+            sent_to: AccountId,
+            ipfs_path: String,
+            file_size: u64,
+        ) -> Result<()> {
             let caller = self.env().caller();
             let share = Share {
-                file_id,
+                file_id: file_id.clone(),
                 file_name,
                 sent_to,
                 ipfs_path,
@@ -418,16 +419,14 @@ mod vcloud {
                 sent_at: self.env().block_timestamp(),
                 file_size,
             };
-            self.shares.insert(share.file_id.clone(), &share);
-            self.shares_items.push(share.file_id.clone());
-            self.env().emit_event(File Shared Succefully {
-                file_id,
-                file_name,
-                sent_to,
-                ipfs_path,
-                sent_by: caller.clone(),
-                file_size,
-                sent_at: self.env().block_timestamp(),
+            self.shared.insert(file_id.clone(), &share);
+            self.shared_items.push(share.file_id.clone());
+            self.env().emit_event({
+                ShareCreated {
+                    sent_to: share.sent_to.clone(),
+                    ipfs_path: share.ipfs_path.clone(),
+                    sent_by: share.sent_by.clone(),
+                }
             });
             Ok(())
         }
@@ -436,8 +435,8 @@ mod vcloud {
         #[ink(message)]
         pub fn get_shared_files(&self) -> Vec<Share> {
             let mut shares = Vec::new();
-            for file_id in self.shares_items.iter() {
-                let share = self.shares.get(file_id).unwrap();
+            for file_id in self.shared_items.iter() {
+                let share = self.shared.get(file_id).unwrap();
                 shares.push(share);
             }
             shares
@@ -447,8 +446,8 @@ mod vcloud {
         #[ink(message)]
         pub fn get_shared_files_by_sent_by(&self, sent_by: AccountId) -> Vec<Share> {
             let mut shares = Vec::new();
-            for file_id in self.shares_items.iter() {
-                let share = self.shares.get(file_id).unwrap();
+            for file_id in self.shared_items.iter() {
+                let share = self.shared.get(file_id).unwrap();
                 if share.sent_by == sent_by {
                     shares.push(share);
                 }
@@ -457,11 +456,11 @@ mod vcloud {
         }
 
         /// get shared Files by sent_to
-        #[ink(message)] 
+        #[ink(message)]
         pub fn get_shared_files_by_sent_to(&self, sent_to: AccountId) -> Vec<Share> {
             let mut shares = Vec::new();
-            for file_id in self.shares_items.iter() {
-                let share = self.shares.get(file_id).unwrap();
+            for file_id in self.shared_items.iter() {
+                let share = self.shared.get(file_id).unwrap();
                 if share.sent_to == sent_to {
                     shares.push(share);
                 }
@@ -469,5 +468,4 @@ mod vcloud {
             shares
         }
     }
-
 }

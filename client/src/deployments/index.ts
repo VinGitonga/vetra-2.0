@@ -7,7 +7,7 @@ export const getDeployments = async (): Promise<SubstrateDeployment[]> => {
       contractId: ContractID.Vetra,
       networkId: alephzeroTestnet.network,
       abi: await import("./vetra.json"),
-      address: "5G3bbpS83yUGbDUhhWzY7gJVSbfDEQdxwyFJUK4b7dJbg9xL",
+      address: "5EJpRVAtxDWNmUovn3ErULhijrQvRTo3FroZrNqUzxs4JkXd",
     },
   ];
 };

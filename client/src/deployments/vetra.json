@@ -1,6 +1,6 @@
 {
   "source": {
-    "hash": "0xb77f69ac58adafc4f23408215661a62d443302fc83ceff1952ac74de8827118f",
+    "hash": "0x2cfffec1d604faf9fd9805bea454a540edd1118c37cf6bf5e9943543199b584d",
     "language": "ink! 4.1.0",
     "compiler": "rustc 1.70.0-nightly",
     "build_info": {
@@ -32,7 +32,7 @@
             "ink_primitives",
             "ConstructorResult"
           ],
-          "type": 7
+          "type": 8
         },
         "selector": "0x9bae9d5e"
       }
@@ -169,6 +169,45 @@
         ],
         "docs": [],
         "label": "VaultRemoved"
+      },
+      {
+        "args": [
+          {
+            "docs": [],
+            "indexed": true,
+            "label": "ipfs_path",
+            "type": {
+              "displayName": [
+                "String"
+              ],
+              "type": 0
+            }
+          },
+          {
+            "docs": [],
+            "indexed": true,
+            "label": "sent_to",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 1
+            }
+          },
+          {
+            "docs": [],
+            "indexed": true,
+            "label": "sent_by",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 1
+            }
+          }
+        ],
+        "docs": [],
+        "label": "ShareCreated"
       }
     ],
     "lang_error": {
@@ -176,7 +215,7 @@
         "ink",
         "LangError"
       ],
-      "type": 9
+      "type": 10
     },
     "messages": [
       {
@@ -211,7 +250,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 10
+          "type": 11
         },
         "selector": "0x46f5a0fa"
       },
@@ -238,7 +277,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 13
+          "type": 14
         },
         "selector": "0xa4ca534e"
       },
@@ -255,7 +294,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 16
+          "type": 17
         },
         "selector": "0x528c868f"
       },
@@ -300,7 +339,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 10
+          "type": 11
         },
         "selector": "0xa90550ab"
       },
@@ -327,7 +366,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 18
+          "type": 19
         },
         "selector": "0x77ba7f13"
       },
@@ -344,7 +383,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 21
+          "type": 22
         },
         "selector": "0xe53ba42f"
       },
@@ -371,7 +410,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 21
+          "type": 22
         },
         "selector": "0x169fafd5"
       },
@@ -398,7 +437,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 21
+          "type": 22
         },
         "selector": "0x588c6410"
       },
@@ -443,7 +482,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 10
+          "type": 11
         },
         "selector": "0x4c48b03e"
       },
@@ -470,7 +509,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 23
+          "type": 24
         },
         "selector": "0x7a709a9a"
       },
@@ -487,7 +526,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 26
+          "type": 27
         },
         "selector": "0xf0c06e80"
       },
@@ -514,7 +553,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 26
+          "type": 27
         },
         "selector": "0x59c1b7ff"
       },
@@ -541,7 +580,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 10
+          "type": 11
         },
         "selector": "0x4a5ddc26"
       },
@@ -558,7 +597,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 28
+          "type": 29
         },
         "selector": "0x75a258bc"
       },
@@ -575,9 +614,143 @@
             "ink",
             "MessageResult"
           ],
-          "type": 10
+          "type": 11
         },
         "selector": "0x09f8217c"
+      },
+      {
+        "args": [
+          {
+            "label": "file_id",
+            "type": {
+              "displayName": [
+                "String"
+              ],
+              "type": 0
+            }
+          },
+          {
+            "label": "file_name",
+            "type": {
+              "displayName": [
+                "String"
+              ],
+              "type": 0
+            }
+          },
+          {
+            "label": "sent_to",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 1
+            }
+          },
+          {
+            "label": "ipfs_path",
+            "type": {
+              "displayName": [
+                "String"
+              ],
+              "type": 0
+            }
+          },
+          {
+            "label": "file_size",
+            "type": {
+              "displayName": [
+                "u64"
+              ],
+              "type": 5
+            }
+          }
+        ],
+        "docs": [
+          " create a share for a document present in our web3 storage with a wallet address or email address"
+        ],
+        "label": "create_share",
+        "mutates": true,
+        "payable": false,
+        "returnType": {
+          "displayName": [
+            "ink",
+            "MessageResult"
+          ],
+          "type": 11
+        },
+        "selector": "0x00389bd0"
+      },
+      {
+        "args": [],
+        "docs": [
+          " get shared Files"
+        ],
+        "label": "get_shared_files",
+        "mutates": false,
+        "payable": false,
+        "returnType": {
+          "displayName": [
+            "ink",
+            "MessageResult"
+          ],
+          "type": 31
+        },
+        "selector": "0x31fd2aef"
+      },
+      {
+        "args": [
+          {
+            "label": "sent_by",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 1
+            }
+          }
+        ],
+        "docs": [
+          " get shared Files by sent_by"
+        ],
+        "label": "get_shared_files_by_sent_by",
+        "mutates": false,
+        "payable": false,
+        "returnType": {
+          "displayName": [
+            "ink",
+            "MessageResult"
+          ],
+          "type": 31
+        },
+        "selector": "0xccb59d43"
+      },
+      {
+        "args": [
+          {
+            "label": "sent_to",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 1
+            }
+          }
+        ],
+        "docs": [
+          " get shared Files by sent_to"
+        ],
+        "label": "get_shared_files_by_sent_to",
+        "mutates": false,
+        "payable": false,
+        "returnType": {
+          "displayName": [
+            "ink",
+            "MessageResult"
+          ],
+          "type": 31
+        },
+        "selector": "0x1e5a51f9"
       }
     ]
   },
@@ -788,6 +961,93 @@
                 }
               },
               "name": "vault"
+            },
+            {
+              "layout": {
+                "root": {
+                  "layout": {
+                    "struct": {
+                      "fields": [
+                        {
+                          "layout": {
+                            "leaf": {
+                              "key": "0x57bda394",
+                              "ty": 0
+                            }
+                          },
+                          "name": "file_id"
+                        },
+                        {
+                          "layout": {
+                            "leaf": {
+                              "key": "0x57bda394",
+                              "ty": 0
+                            }
+                          },
+                          "name": "file_name"
+                        },
+                        {
+                          "layout": {
+                            "leaf": {
+                              "key": "0x57bda394",
+                              "ty": 0
+                            }
+                          },
+                          "name": "ipfs_path"
+                        },
+                        {
+                          "layout": {
+                            "leaf": {
+                              "key": "0x57bda394",
+                              "ty": 1
+                            }
+                          },
+                          "name": "sent_to"
+                        },
+                        {
+                          "layout": {
+                            "leaf": {
+                              "key": "0x57bda394",
+                              "ty": 5
+                            }
+                          },
+                          "name": "file_size"
+                        },
+                        {
+                          "layout": {
+                            "leaf": {
+                              "key": "0x57bda394",
+                              "ty": 5
+                            }
+                          },
+                          "name": "sent_at"
+                        },
+                        {
+                          "layout": {
+                            "leaf": {
+                              "key": "0x57bda394",
+                              "ty": 1
+                            }
+                          },
+                          "name": "sent_by"
+                        }
+                      ],
+                      "name": "Share"
+                    }
+                  },
+                  "root_key": "0x57bda394"
+                }
+              },
+              "name": "shared"
+            },
+            {
+              "layout": {
+                "leaf": {
+                  "key": "0x00000000",
+                  "ty": 7
+                }
+              },
+              "name": "shared_items"
             }
           ],
           "name": "Vcloud"
@@ -876,12 +1136,22 @@
       "id": 7,
       "type": {
         "def": {
+          "sequence": {
+            "type": 0
+          }
+        }
+      }
+    },
+    {
+      "id": 8,
+      "type": {
+        "def": {
           "variant": {
             "variants": [
               {
                 "fields": [
                   {
-                    "type": 8
+                    "type": 9
                   }
                 ],
                 "index": 0,
@@ -890,7 +1160,7 @@
               {
                 "fields": [
                   {
-                    "type": 9
+                    "type": 10
                   }
                 ],
                 "index": 1,
@@ -902,11 +1172,11 @@
         "params": [
           {
             "name": "T",
-            "type": 8
+            "type": 9
           },
           {
             "name": "E",
-            "type": 9
+            "type": 10
           }
         ],
         "path": [
@@ -915,7 +1185,7 @@
       }
     },
     {
-      "id": 8,
+      "id": 9,
       "type": {
         "def": {
           "tuple": []
@@ -923,7 +1193,7 @@
       }
     },
     {
-      "id": 9,
+      "id": 10,
       "type": {
         "def": {
           "variant": {
@@ -942,48 +1212,6 @@
       }
     },
     {
-      "id": 10,
-      "type": {
-        "def": {
-          "variant": {
-            "variants": [
-              {
-                "fields": [
-                  {
-                    "type": 11
-                  }
-                ],
-                "index": 0,
-                "name": "Ok"
-              },
-              {
-                "fields": [
-                  {
-                    "type": 9
-                  }
-                ],
-                "index": 1,
-                "name": "Err"
-              }
-            ]
-          }
-        },
-        "params": [
-          {
-            "name": "T",
-            "type": 11
-          },
-          {
-            "name": "E",
-            "type": 9
-          }
-        ],
-        "path": [
-          "Result"
-        ]
-      }
-    },
-    {
       "id": 11,
       "type": {
         "def": {
@@ -992,7 +1220,7 @@
               {
                 "fields": [
                   {
-                    "type": 8
+                    "type": 12
                   }
                 ],
                 "index": 0,
@@ -1001,7 +1229,7 @@
               {
                 "fields": [
                   {
-                    "type": 12
+                    "type": 10
                   }
                 ],
                 "index": 1,
@@ -1013,11 +1241,11 @@
         "params": [
           {
             "name": "T",
-            "type": 8
+            "type": 12
           },
           {
             "name": "E",
-            "type": 12
+            "type": 10
           }
         ],
         "path": [
@@ -1027,6 +1255,48 @@
     },
     {
       "id": 12,
+      "type": {
+        "def": {
+          "variant": {
+            "variants": [
+              {
+                "fields": [
+                  {
+                    "type": 9
+                  }
+                ],
+                "index": 0,
+                "name": "Ok"
+              },
+              {
+                "fields": [
+                  {
+                    "type": 13
+                  }
+                ],
+                "index": 1,
+                "name": "Err"
+              }
+            ]
+          }
+        },
+        "params": [
+          {
+            "name": "T",
+            "type": 9
+          },
+          {
+            "name": "E",
+            "type": 13
+          }
+        ],
+        "path": [
+          "Result"
+        ]
+      }
+    },
+    {
+      "id": 13,
       "type": {
         "def": {
           "variant": {
@@ -1050,7 +1320,7 @@
       }
     },
     {
-      "id": 13,
+      "id": 14,
       "type": {
         "def": {
           "variant": {
@@ -1058,7 +1328,7 @@
               {
                 "fields": [
                   {
-                    "type": 14
+                    "type": 15
                   }
                 ],
                 "index": 0,
@@ -1067,7 +1337,7 @@
               {
                 "fields": [
                   {
-                    "type": 9
+                    "type": 10
                   }
                 ],
                 "index": 1,
@@ -1079,11 +1349,11 @@
         "params": [
           {
             "name": "T",
-            "type": 14
+            "type": 15
           },
           {
             "name": "E",
-            "type": 9
+            "type": 10
           }
         ],
         "path": [
@@ -1092,7 +1362,7 @@
       }
     },
     {
-      "id": 14,
+      "id": 15,
       "type": {
         "def": {
           "variant": {
@@ -1104,7 +1374,7 @@
               {
                 "fields": [
                   {
-                    "type": 15
+                    "type": 16
                   }
                 ],
                 "index": 1,
@@ -1116,7 +1386,7 @@
         "params": [
           {
             "name": "T",
-            "type": 15
+            "type": 16
           }
         ],
         "path": [
@@ -1125,7 +1395,7 @@
       }
     },
     {
-      "id": 15,
+      "id": 16,
       "type": {
         "def": {
           "composite": {
@@ -1156,7 +1426,7 @@
       }
     },
     {
-      "id": 16,
+      "id": 17,
       "type": {
         "def": {
           "variant": {
@@ -1164,7 +1434,7 @@
               {
                 "fields": [
                   {
-                    "type": 17
+                    "type": 18
                   }
                 ],
                 "index": 0,
@@ -1173,7 +1443,7 @@
               {
                 "fields": [
                   {
-                    "type": 9
+                    "type": 10
                   }
                 ],
                 "index": 1,
@@ -1185,38 +1455,38 @@
         "params": [
           {
             "name": "T",
-            "type": 17
+            "type": 18
           },
           {
             "name": "E",
-            "type": 9
+            "type": 10
           }
         ],
         "path": [
           "Result"
         ]
-      }
-    },
-    {
-      "id": 17,
-      "type": {
-        "def": {
-          "sequence": {
-            "type": 15
-          }
-        }
       }
     },
     {
       "id": 18,
       "type": {
         "def": {
+          "sequence": {
+            "type": 16
+          }
+        }
+      }
+    },
+    {
+      "id": 19,
+      "type": {
+        "def": {
           "variant": {
             "variants": [
               {
                 "fields": [
                   {
-                    "type": 19
+                    "type": 20
                   }
                 ],
                 "index": 0,
@@ -1225,7 +1495,7 @@
               {
                 "fields": [
                   {
-                    "type": 9
+                    "type": 10
                   }
                 ],
                 "index": 1,
@@ -1237,11 +1507,11 @@
         "params": [
           {
             "name": "T",
-            "type": 19
+            "type": 20
           },
           {
             "name": "E",
-            "type": 9
+            "type": 10
           }
         ],
         "path": [
@@ -1250,7 +1520,7 @@
       }
     },
     {
-      "id": 19,
+      "id": 20,
       "type": {
         "def": {
           "variant": {
@@ -1262,7 +1532,7 @@
               {
                 "fields": [
                   {
-                    "type": 20
+                    "type": 21
                   }
                 ],
                 "index": 1,
@@ -1274,7 +1544,7 @@
         "params": [
           {
             "name": "T",
-            "type": 20
+            "type": 21
           }
         ],
         "path": [
@@ -1283,7 +1553,7 @@
       }
     },
     {
-      "id": 20,
+      "id": 21,
       "type": {
         "def": {
           "composite": {
@@ -1324,7 +1594,7 @@
       }
     },
     {
-      "id": 21,
+      "id": 22,
       "type": {
         "def": {
           "variant": {
@@ -1332,7 +1602,7 @@
               {
                 "fields": [
                   {
-                    "type": 22
+                    "type": 23
                   }
                 ],
                 "index": 0,
@@ -1341,7 +1611,7 @@
               {
                 "fields": [
                   {
-                    "type": 9
+                    "type": 10
                   }
                 ],
                 "index": 1,
@@ -1353,38 +1623,38 @@
         "params": [
           {
             "name": "T",
-            "type": 22
+            "type": 23
           },
           {
             "name": "E",
-            "type": 9
+            "type": 10
           }
         ],
         "path": [
           "Result"
         ]
-      }
-    },
-    {
-      "id": 22,
-      "type": {
-        "def": {
-          "sequence": {
-            "type": 20
-          }
-        }
       }
     },
     {
       "id": 23,
       "type": {
         "def": {
+          "sequence": {
+            "type": 21
+          }
+        }
+      }
+    },
+    {
+      "id": 24,
+      "type": {
+        "def": {
           "variant": {
             "variants": [
               {
                 "fields": [
                   {
-                    "type": 24
+                    "type": 25
                   }
                 ],
                 "index": 0,
@@ -1393,7 +1663,7 @@
               {
                 "fields": [
                   {
-                    "type": 9
+                    "type": 10
                   }
                 ],
                 "index": 1,
@@ -1405,11 +1675,11 @@
         "params": [
           {
             "name": "T",
-            "type": 24
+            "type": 25
           },
           {
             "name": "E",
-            "type": 9
+            "type": 10
           }
         ],
         "path": [
@@ -1418,7 +1688,7 @@
       }
     },
     {
-      "id": 24,
+      "id": 25,
       "type": {
         "def": {
           "variant": {
@@ -1430,7 +1700,7 @@
               {
                 "fields": [
                   {
-                    "type": 25
+                    "type": 26
                   }
                 ],
                 "index": 1,
@@ -1442,7 +1712,7 @@
         "params": [
           {
             "name": "T",
-            "type": 25
+            "type": 26
           }
         ],
         "path": [
@@ -1451,7 +1721,7 @@
       }
     },
     {
-      "id": 25,
+      "id": 26,
       "type": {
         "def": {
           "composite": {
@@ -1492,7 +1762,7 @@
       }
     },
     {
-      "id": 26,
+      "id": 27,
       "type": {
         "def": {
           "variant": {
@@ -1500,7 +1770,7 @@
               {
                 "fields": [
                   {
-                    "type": 27
+                    "type": 28
                   }
                 ],
                 "index": 0,
@@ -1509,7 +1779,7 @@
               {
                 "fields": [
                   {
-                    "type": 9
+                    "type": 10
                   }
                 ],
                 "index": 1,
@@ -1521,38 +1791,38 @@
         "params": [
           {
             "name": "T",
-            "type": 27
+            "type": 28
           },
           {
             "name": "E",
-            "type": 9
+            "type": 10
           }
         ],
         "path": [
           "Result"
         ]
-      }
-    },
-    {
-      "id": 27,
-      "type": {
-        "def": {
-          "sequence": {
-            "type": 25
-          }
-        }
       }
     },
     {
       "id": 28,
       "type": {
         "def": {
+          "sequence": {
+            "type": 26
+          }
+        }
+      }
+    },
+    {
+      "id": 29,
+      "type": {
+        "def": {
           "variant": {
             "variants": [
               {
                 "fields": [
                   {
-                    "type": 29
+                    "type": 30
                   }
                 ],
                 "index": 0,
@@ -1561,7 +1831,7 @@
               {
                 "fields": [
                   {
-                    "type": 9
+                    "type": 10
                   }
                 ],
                 "index": 1,
@@ -1573,11 +1843,11 @@
         "params": [
           {
             "name": "T",
-            "type": 29
+            "type": 30
           },
           {
             "name": "E",
-            "type": 9
+            "type": 10
           }
         ],
         "path": [
@@ -1586,7 +1856,7 @@
       }
     },
     {
-      "id": 29,
+      "id": 30,
       "type": {
         "def": {
           "variant": {
@@ -1615,6 +1885,109 @@
         ],
         "path": [
           "Option"
+        ]
+      }
+    },
+    {
+      "id": 31,
+      "type": {
+        "def": {
+          "variant": {
+            "variants": [
+              {
+                "fields": [
+                  {
+                    "type": 32
+                  }
+                ],
+                "index": 0,
+                "name": "Ok"
+              },
+              {
+                "fields": [
+                  {
+                    "type": 10
+                  }
+                ],
+                "index": 1,
+                "name": "Err"
+              }
+            ]
+          }
+        },
+        "params": [
+          {
+            "name": "T",
+            "type": 32
+          },
+          {
+            "name": "E",
+            "type": 10
+          }
+        ],
+        "path": [
+          "Result"
+        ]
+      }
+    },
+    {
+      "id": 32,
+      "type": {
+        "def": {
+          "sequence": {
+            "type": 33
+          }
+        }
+      }
+    },
+    {
+      "id": 33,
+      "type": {
+        "def": {
+          "composite": {
+            "fields": [
+              {
+                "name": "file_id",
+                "type": 0,
+                "typeName": "String"
+              },
+              {
+                "name": "file_name",
+                "type": 0,
+                "typeName": "String"
+              },
+              {
+                "name": "ipfs_path",
+                "type": 0,
+                "typeName": "String"
+              },
+              {
+                "name": "sent_to",
+                "type": 1,
+                "typeName": "AccountId"
+              },
+              {
+                "name": "file_size",
+                "type": 5,
+                "typeName": "u64"
+              },
+              {
+                "name": "sent_at",
+                "type": 5,
+                "typeName": "Timestamp"
+              },
+              {
+                "name": "sent_by",
+                "type": 1,
+                "typeName": "AccountId"
+              }
+            ]
+          }
+        },
+        "path": [
+          "vcloud",
+          "vcloud",
+          "Share"
         ]
       }
     }
