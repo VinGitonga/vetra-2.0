@@ -1,18 +1,21 @@
+
 interface ResponseInputProps {
   msg: string;
+  requestId: string;
   setMsg: (msg: string) => void;
-  onClickSelectFile: () => void;
+  onClickSelectFile?: () => void;
   onClickSubmit: () => void;
   loading: boolean;
 }
 
 export default function ResponseInput({
   msg,
+  requestId,
   setMsg,
   onClickSelectFile,
   onClickSubmit,
   loading,
-}: Partial<ResponseInputProps>) {
+}: ResponseInputProps) {
   return (
     <div>
       <label className="sr-only">Your response</label>
@@ -41,15 +44,15 @@ export default function ResponseInput({
         <textarea
           id="chat"
           rows={1}
-          //   value={msg}
+          value={msg}
           className="block mx-4 p-2.5 w-full text-sm text-gray-900 bg-white rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500 "
           placeholder="Type your response..."
-          //   onChange={(e) => setMsg(e.target.value)}
+          onChange={(e) => setMsg(e.target.value)}
         ></textarea>
         <button
           type="submit"
           disabled={loading}
-          //   onClick={onClickSubmit}
+          onClick={onClickSubmit}
           className="inline-flex justify-center p-2 text-blue-600 rounded-full cursor-pointer hover:bg-blue-100"
         >
           <svg

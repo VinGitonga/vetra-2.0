@@ -1,10 +1,17 @@
-import { IRequest } from "@/types/Contracts";
 import TimeAgo from "javascript-time-ago";
 import en from "javascript-time-ago/locale/en.json";
 import Badge from "../badge";
 import PrimaryButton from "../buttons/PrimaryButton";
 import ResponseInput from "./ResponseInput";
 import ResponseItem from "./ResponseItem";
+import { toast } from "react-hot-toast";
+import { useState } from "react";
+import { ContractID, IRequest } from "@/types/Contracts";
+import {
+  contractTx,
+  useInkathon,
+  useRegisteredContract,
+} from "@scio-labs/use-inkathon";
 
 TimeAgo.addLocale(en);
 
@@ -15,6 +22,44 @@ interface RequestItemProps {
 }
 
 const RequestItem = ({ data }: RequestItemProps) => {
+  const { activeAccount, activeSigner, api } = useInkathon();
+  const { contract } = useRegisteredContract(ContractID.Vetra);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [msg, setMsg] = useState<string>("");
+  const [requestId, setRequestId] = useState<string>("");
+
+  const handleSendReply = async () => {
+    if (!msg) {
+      toast.error("Please enter a message");
+      return;
+    }
+    if (!activeAccount || !activeSigner || !api || !contract) {
+      toast.error("Please connect to your wallet");
+      return;
+    }
+    try {
+      setLoading(true);
+      api.setSigner(activeSigner);
+      await contractTx(
+        api,
+        activeAccount.address,
+        contract,
+        "createReply",
+        {},
+        [msg, requestId],
+        ({ status }) => {
+          if (status.isInBlock) {
+            toast.success("Reply sent successfully");
+            setMsg("");
+          }
+        }
+      );
+    } catch (error) {
+      toast.error("Something went wrong");
+    } finally {
+      setLoading(false);
+    }
+  };
   return (
     <>
       <div className="bg-white rounded-lg border border-gray-200 shadow-md p-4 mb-5">
@@ -38,10 +83,14 @@ const RequestItem = ({ data }: RequestItemProps) => {
             {timeAgo.format(new Date(data.sentAt ?? 0), "twitter-now")}
           </p>
         </div>
-        <p className="text-md text-gray-800 my-2 w-3/4">
-          {data.msg}
-        </p>
-        <ResponseInput />
+        <p className="text-md text-gray-800 my-2 w-3/4">{data.msg}</p>
+        <ResponseInput
+          msg={msg}
+          requestId ={data.requestId}
+          setMsg={setMsg}
+          loading={loading}
+          onClickSubmit={handleSendReply}
+        />
         <Badge text="Carbon.png" onClick={() => {}} />
         <div className="my-4 flex justify-between items-center">
           <PrimaryButton

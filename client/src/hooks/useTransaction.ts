@@ -25,7 +25,38 @@ const useTransaction = () => {
       return requests
     }
   }, [activeAccount]);
-  return { getRequestBySentBy };
+
+  const getReply = useCallback(async (requestId: number) => {
+    if (contract && api && activeAccount) {
+      const result = await contractQuery(
+        api,
+        activeAccount?.address,
+        contract,
+        "getReply",
+        {},
+        [requestId]
+      );
+      const response =  unwrapResultOrDefault(result, [] as IRequest[]);
+      return response
+    }
+  }, [activeAccount]);
+  const getRequestsByAddressedTo  = useCallback(async () => {
+    if (contract && api && activeAccount) {
+      const result = await contractQuery(
+        api,
+        activeAccount?.address,
+        contract,
+        "getRequestsByAddressedTo",
+        {},
+        [activeAccount.address]
+      );
+      const requests =  unwrapResultOrDefault(result, [] as IRequest[]);
+      return requests
+    }
+  }, [activeAccount]);
+
+
+  return { getRequestBySentBy, getReply, getRequestsByAddressedTo };
 };
 
 export default useTransaction;
