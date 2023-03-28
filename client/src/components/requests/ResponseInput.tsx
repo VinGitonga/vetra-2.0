@@ -1,7 +1,5 @@
-
 interface ResponseInputProps {
   msg: string;
-  requestId: string;
   setMsg: (msg: string) => void;
   onClickSelectFile?: () => void;
   onClickSubmit: () => void;
@@ -10,7 +8,6 @@ interface ResponseInputProps {
 
 export default function ResponseInput({
   msg,
-  requestId,
   setMsg,
   onClickSelectFile,
   onClickSubmit,
@@ -38,7 +35,7 @@ export default function ResponseInput({
               clipRule="evenodd"
             ></path>
           </svg>
-          <span className="sr-only">Upload image</span>
+          <span className="sr-only">Select File to Share</span>
         </button>
 
         <textarea

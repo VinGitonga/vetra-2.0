@@ -31,7 +31,7 @@ const useApi = () => {
 
   const getSecret = useCallback(async () => {
     // get first the encrypted nounce
-    if (activeAccount && activeSigner && api && contract) {
+    if (activeAccount && api && contract) {
       const result = await contractQuery(
         api,
         activeAccount.address,
@@ -40,6 +40,8 @@ const useApi = () => {
         {}
       );
       const encryptedNounce = unwrapResultOrDefault(result, "" as string);
+
+      console.log(encryptedNounce)
 
       if (encryptedNounce) {
         const response = await axios.get<IApiResponse>(

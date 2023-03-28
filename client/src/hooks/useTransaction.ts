@@ -1,4 +1,4 @@
-import { ContractID, IRequest } from "@/types/Contracts";
+import { ContractID, IReply, IRequest } from "@/types/Contracts";
 import {
   contractQuery,
   unwrapResultOrDefault,
@@ -21,26 +21,29 @@ const useTransaction = () => {
         {},
         [activeAccount.address]
       );
-      const requests =  unwrapResultOrDefault(result, [] as IRequest[]);
-      return requests
+      const requests = unwrapResultOrDefault(result, [] as IRequest[]);
+      return requests;
     }
   }, [activeAccount]);
 
-  const getReply = useCallback(async (requestId: number) => {
-    if (contract && api && activeAccount) {
-      const result = await contractQuery(
-        api,
-        activeAccount?.address,
-        contract,
-        "getReply",
-        {},
-        [requestId]
-      );
-      const response =  unwrapResultOrDefault(result, [] as IRequest[]);
-      return response
-    }
-  }, [activeAccount]);
-  const getRequestsByAddressedTo  = useCallback(async () => {
+  const getReply = useCallback(
+    async (requestId: number) => {
+      if (contract && api && activeAccount) {
+        const result = await contractQuery(
+          api,
+          activeAccount?.address,
+          contract,
+          "getReply",
+          {},
+          [requestId]
+        );
+        const response = unwrapResultOrDefault(result, [] as IRequest[]);
+        return response;
+      }
+    },
+    [activeAccount]
+  );
+  const getRequestsByAddressedTo = useCallback(async () => {
     if (contract && api && activeAccount) {
       const result = await contractQuery(
         api,
@@ -50,13 +53,33 @@ const useTransaction = () => {
         {},
         [activeAccount.address]
       );
-      const requests =  unwrapResultOrDefault(result, [] as IRequest[]);
-      return requests
+      const requests = unwrapResultOrDefault(result, [] as IRequest[]);
+      return requests;
     }
   }, [activeAccount]);
 
+  const getRepliesByRequest = useCallback(async (requestId: number) => {
+    if (contract && api && activeAccount) {
+      const result = await contractQuery(
+        api,
+        activeAccount?.address,
+        contract,
+        "getRepliesByRequest",
+        {},
+        [requestId]
+      );
+      const replies = unwrapResultOrDefault(result, [] as IReply[]);
+      console.log(replies)
+      return replies;
+    }
+  }, [activeAccount]);
 
-  return { getRequestBySentBy, getReply, getRequestsByAddressedTo };
+  return {
+    getRequestBySentBy,
+    getReply,
+    getRequestsByAddressedTo,
+    getRepliesByRequest,
+  };
 };
 
 export default useTransaction;

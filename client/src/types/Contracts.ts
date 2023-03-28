@@ -6,7 +6,14 @@ export interface IRequest {
     addressedTo: string;
     sentBy: string;
     sentAt: number;
-    requestId: string;
+    requestId: number;
 }
 
+export interface IReply {
+    msg: string;
+    requestId: number;
+    sentBy: string;
+    sentAt: number;
+    replyId: number;
+}
 

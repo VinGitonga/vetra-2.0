@@ -6,12 +6,14 @@ import ResponseInput from "./ResponseInput";
 import ResponseItem from "./ResponseItem";
 import { toast } from "react-hot-toast";
 import { useState } from "react";
-import { ContractID, IRequest } from "@/types/Contracts";
+import { ContractID, IReply, IRequest } from "@/types/Contracts";
 import {
   contractTx,
   useInkathon,
   useRegisteredContract,
 } from "@scio-labs/use-inkathon";
+import { generateRandomNumbers } from "@/utils/utils";
+import useTransaction from "@/hooks/useTransaction";
 
 TimeAgo.addLocale(en);
 
@@ -26,7 +28,21 @@ const RequestItem = ({ data }: RequestItemProps) => {
   const { contract } = useRegisteredContract(ContractID.Vetra);
   const [loading, setLoading] = useState<boolean>(false);
   const [msg, setMsg] = useState<string>("");
-  const [requestId, setRequestId] = useState<string>("");
+  const [showResponses, setShowResponses] = useState<boolean>(false);
+  const [replies, setReplies] = useState<IReply[]>([]);
+  const { getRepliesByRequest } = useTransaction();
+
+  const handleShowHideReplies = (show: boolean) => {
+    if (!show) {
+      fetchRequestReplies();
+    }
+    setShowResponses(!show);
+  };
+
+  const fetchRequestReplies = async () => {
+    const all_replies = await getRepliesByRequest(data.requestId);
+    setReplies(all_replies);
+  };
 
   const handleSendReply = async () => {
     if (!msg) {
@@ -38,6 +54,7 @@ const RequestItem = ({ data }: RequestItemProps) => {
       return;
     }
     try {
+      const replyId = generateRandomNumbers(8);
       setLoading(true);
       api.setSigner(activeSigner);
       await contractTx(
@@ -46,11 +63,12 @@ const RequestItem = ({ data }: RequestItemProps) => {
         contract,
         "createReply",
         {},
-        [msg, requestId],
+        [msg, data.requestId, parseInt(replyId)],
         ({ status }) => {
           if (status.isInBlock) {
             toast.success("Reply sent successfully");
             setMsg("");
+            fetchRequestReplies();
           }
         }
       );
@@ -86,7 +104,6 @@ const RequestItem = ({ data }: RequestItemProps) => {
         <p className="text-md text-gray-800 my-2 w-3/4">{data.msg}</p>
         <ResponseInput
           msg={msg}
-          requestId ={data.requestId}
           setMsg={setMsg}
           loading={loading}
           onClickSubmit={handleSendReply}
@@ -94,22 +111,34 @@ const RequestItem = ({ data }: RequestItemProps) => {
         <Badge text="Carbon.png" onClick={() => {}} />
         <div className="my-4 flex justify-between items-center">
           <PrimaryButton
-            // text={`${showResponses ? "Hide" : "Show"} Responses`}
-            text="Show Response"
+            text={`${showResponses ? "Hide" : "Show"} Responses`}
             isWidthFull={false}
-            // onClick={() => handleShowHideReplies(showResponses)}
+            onClick={() => handleShowHideReplies(showResponses)}
           />
           <button
             type="button"
+            onClick={fetchRequestReplies}
             className="inline-flex justify-center rounded-md border border-transparent bg-blue-100 px-4 py-2 text-sm font-medium text-blue-900 hover:bg-blue-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
           >
             Refresh Replies
           </button>
         </div>
 
-        {[...Array(2)].map((_, i) => (
-          <ResponseItem key={i} timeAgo={timeAgo} />
-        ))}
+        {showResponses && (
+          <div className="mt-4">
+            {replies?.length > 0 ? (
+              replies.map((reply) => (
+                <ResponseItem
+                  reply={reply}
+                  key={reply.replyId}
+                  timeAgo={timeAgo}
+                />
+              ))
+            ) : (
+              <div className="font-bold text-gray-700">No Responses yet 😢</div>
+            )}
+          </div>
+        )}
       </div>
     </>
   );

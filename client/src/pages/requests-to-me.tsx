@@ -35,7 +35,11 @@ const RequestsToMe: NextPageWithLayout = () => {
             <h1 className="text-3xl font-semibold text-gray-800 capitalize lg:text-4xl">
               File Requests To Me
             </h1>
-            <PrimaryButton text={"Refresh Requests"} isWidthFull={false} />
+            <PrimaryButton
+              text={"Refresh Requests"}
+              isWidthFull={false}
+              onClick={handleRefreshRequests}
+            />
           </div>
           <div className="mt-6">
             {requests.length > 0 ? (

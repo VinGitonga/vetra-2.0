@@ -1,8 +1,9 @@
+import { IReply } from "@/types/Contracts";
 import { Dropdown } from "flowbite-react";
 import DownloadBtn from "../buttons/DownloadBtn";
 
 interface ResponseItemProps {
-  reply: any;
+  reply: IReply;
   timeAgo: any;
 }
 
@@ -12,35 +13,36 @@ interface DropdownMenuProps {
   documentName: string;
 }
 
-export default function ResponseItem({ reply, timeAgo }: Partial<ResponseItemProps>) {
+export default function ResponseItem({
+  reply,
+  timeAgo,
+}: Partial<ResponseItemProps>) {
   return (
     <div className="rounded-lg border border-gray-200 shadow-md p-4 ml-4 my-3">
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-4">
           <img
             className="w-12 h-12 rounded-full"
-            src={`https://avatars.dicebear.com/api/adventurer/lutherjones.svg`}
+            src={`https://avatars.dicebear.com/api/adventurer/${reply.sentBy}.svg`}
             alt=""
           />
           <div>
             <div className="font-bold text-gray-700 ">
-              {reply?.replyAuthor}
-            </div>
-            <div className="text-sm text-gray-500">
-              {"0xeDa6028a4b72d60Eb2638B94FAE7CD974479bFAE"}
+              {reply?.sentBy ?? "Luther Jones"}
             </div>
           </div>
         </div>
         <p className="text-sm text-gray-600">
-          {timeAgo.format(new Date(), "twitter-now")}
+          {timeAgo.format(
+            reply?.sentAt ? new Date(reply.sentAt) : new Date(),
+            "twitter-now"
+          )}
         </p>
       </div>
       <p className="text-sm text-gray-600 my-2 w-3/4">
-        {
-          "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed tincidunt, nisl eget ultricies tincidunt, nisl eros aliquam nisl, etlacinia nisl lorem eget nisl. Sed tincidunt, nisl eget ultricies tincidunt, nisl eros aliquam nisl, et lacinia nisl lorem eget nisl."
-        }
+        {reply.msg}
       </p>
-      {reply?.documentCid && (
+      {/* {reply?.documentCid && (
         <div className="mt-4">
           <DropdownMenu
             label={reply.documentName ?? "Download"}
@@ -48,7 +50,7 @@ export default function ResponseItem({ reply, timeAgo }: Partial<ResponseItemPro
             documentName={reply.documentName ?? "Document Name"}
           />
         </div>
-      )}
+      )} */}
     </div>
   );
 }
