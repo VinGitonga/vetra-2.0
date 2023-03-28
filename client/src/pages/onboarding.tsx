@@ -13,6 +13,8 @@ import { ContractID } from "@/types/Contracts";
 import { NextPageWithLayout } from "@/types/Layout";
 import OnboardingLayout from "@/layouts/Onboarding";
 import useApi from "@/hooks/useApi";
+import axios from "axios";
+import { IApiResponse } from "@/types/Api";
 
 const Onboarding: NextPageWithLayout = () => {
   const { activeAccount, activeSigner, api } = useInkathon();
@@ -21,7 +23,6 @@ const Onboarding: NextPageWithLayout = () => {
   const [phone, setPhone] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
   const router = useRouter();
-  const { generateEncryptedSecret } = useApi();
 
   const resetFields = () => {
     setEmail("");
@@ -59,23 +60,45 @@ const Onboarding: NextPageWithLayout = () => {
 
     try {
       setLoading(true);
-      api.setSigner(activeSigner);
-      await contractTx(
-        api,
-        activeAccount.address,
-        contract,
-        "addUser",
-        {},
-        [email, phone],
-        async ({ status }) => {
-          if (status.isInBlock) {
-            toast.success("Successfully registered");
-            resetFields();
-            router.push("/dashboard");
-            await generateEncryptedSecret();
-          }
+      const response = await axios.post<IApiResponse>(
+        `/api/account/generate-secret`,
+        {
+          walletAddress: activeAccount.address,
         }
       );
+      try {
+        let res_info = response.data;
+        if (res_info.status === "ok") {
+          const encryptedNounce = res_info.data.encryptedNounce;
+          if (encryptedNounce) {
+            // save encrypted nounce onchain
+            api.setSigner(activeSigner);
+            await contractTx(
+              api,
+              activeAccount.address,
+              contract,
+              "addUserWithNounce",
+              {},
+              [email, phone, encryptedNounce],
+              (result) => {
+                if (result.status.isInBlock) {
+                  toast.success("Account created successfully");
+                  console.log(result.events);
+                }
+              }
+            );
+          } else {
+            toast.error("Something went wrong");
+          }
+        } else {
+          toast.error("Something went wrong");
+        }
+      } catch (err) {
+        console.log(err);
+        toast.error("Something went wrong");
+      } finally {
+        router.push("/dashboard");
+      }
       // generate user secrets and save
     } catch (err) {
       console.log(err);

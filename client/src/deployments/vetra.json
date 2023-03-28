@@ -1,6 +1,6 @@
 {
   "source": {
-    "hash": "0x2cfffec1d604faf9fd9805bea454a540edd1118c37cf6bf5e9943543199b584d",
+    "hash": "0xf151077a332b1c69fca2e550d51aa31b6e23325f671eef30be3d3890af5d0879",
     "language": "ink! 4.1.0",
     "compiler": "rustc 1.70.0-nightly",
     "build_info": {
@@ -175,7 +175,7 @@
           {
             "docs": [],
             "indexed": true,
-            "label": "ipfs_path",
+            "label": "share_id",
             "type": {
               "displayName": [
                 "String"
@@ -186,7 +186,7 @@
           {
             "docs": [],
             "indexed": true,
-            "label": "sent_to",
+            "label": "shared_by",
             "type": {
               "displayName": [
                 "AccountId"
@@ -197,7 +197,7 @@
           {
             "docs": [],
             "indexed": true,
-            "label": "sent_by",
+            "label": "shared_to",
             "type": {
               "displayName": [
                 "AccountId"
@@ -621,7 +621,7 @@
       {
         "args": [
           {
-            "label": "file_id",
+            "label": "entity_id",
             "type": {
               "displayName": [
                 "String"
@@ -639,16 +639,7 @@
             }
           },
           {
-            "label": "sent_to",
-            "type": {
-              "displayName": [
-                "AccountId"
-              ],
-              "type": 1
-            }
-          },
-          {
-            "label": "ipfs_path",
+            "label": "ipfs_cid",
             "type": {
               "displayName": [
                 "String"
@@ -657,12 +648,30 @@
             }
           },
           {
-            "label": "file_size",
+            "label": "shared_to",
             "type": {
               "displayName": [
-                "u64"
+                "AccountId"
               ],
-              "type": 5
+              "type": 1
+            }
+          },
+          {
+            "label": "file_key",
+            "type": {
+              "displayName": [
+                "String"
+              ],
+              "type": 0
+            }
+          },
+          {
+            "label": "share_id",
+            "type": {
+              "displayName": [
+                "String"
+              ],
+              "type": 0
             }
           }
         ],
@@ -699,17 +708,7 @@
         "selector": "0x31fd2aef"
       },
       {
-        "args": [
-          {
-            "label": "sent_by",
-            "type": {
-              "displayName": [
-                "AccountId"
-              ],
-              "type": 1
-            }
-          }
-        ],
+        "args": [],
         "docs": [
           " get shared Files by sent_by"
         ],
@@ -726,17 +725,7 @@
         "selector": "0xccb59d43"
       },
       {
-        "args": [
-          {
-            "label": "sent_to",
-            "type": {
-              "displayName": [
-                "AccountId"
-              ],
-              "type": 1
-            }
-          }
-        ],
+        "args": [],
         "docs": [
           " get shared Files by sent_to"
         ],
@@ -751,6 +740,141 @@
           "type": 31
         },
         "selector": "0x1e5a51f9"
+      },
+      {
+        "args": [
+          {
+            "label": "email",
+            "type": {
+              "displayName": [
+                "String"
+              ],
+              "type": 0
+            }
+          },
+          {
+            "label": "phone",
+            "type": {
+              "displayName": [
+                "String"
+              ],
+              "type": 0
+            }
+          },
+          {
+            "label": "nounce",
+            "type": {
+              "displayName": [
+                "String"
+              ],
+              "type": 0
+            }
+          }
+        ],
+        "docs": [
+          " Adds User with unique nounce"
+        ],
+        "label": "add_user_with_nounce",
+        "mutates": true,
+        "payable": false,
+        "returnType": {
+          "displayName": [
+            "ink",
+            "MessageResult"
+          ],
+          "type": 11
+        },
+        "selector": "0xe3c618d3"
+      },
+      {
+        "args": [
+          {
+            "label": "entity_id",
+            "type": {
+              "displayName": [
+                "String"
+              ],
+              "type": 0
+            }
+          },
+          {
+            "label": "file_name",
+            "type": {
+              "displayName": [
+                "String"
+              ],
+              "type": 0
+            }
+          },
+          {
+            "label": "ipfs_cid",
+            "type": {
+              "displayName": [
+                "String"
+              ],
+              "type": 0
+            }
+          },
+          {
+            "label": "shared_to",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 1
+            }
+          },
+          {
+            "label": "file_key",
+            "type": {
+              "displayName": [
+                "String"
+              ],
+              "type": 0
+            }
+          },
+          {
+            "label": "share_id",
+            "type": {
+              "displayName": [
+                "String"
+              ],
+              "type": 0
+            }
+          },
+          {
+            "label": "request_id",
+            "type": {
+              "displayName": [
+                "u64"
+              ],
+              "type": 5
+            }
+          },
+          {
+            "label": "reply_id",
+            "type": {
+              "displayName": [
+                "u64"
+              ],
+              "type": 5
+            }
+          }
+        ],
+        "docs": [
+          " Fn that shares a file and automatically sends a reply to the request"
+        ],
+        "label": "share_with_reply",
+        "mutates": true,
+        "payable": false,
+        "returnType": {
+          "displayName": [
+            "ink",
+            "MessageResult"
+          ],
+          "type": 11
+        },
+        "selector": "0x6ca22ae3"
       }
     ]
   },
@@ -975,7 +1099,7 @@
                               "ty": 0
                             }
                           },
-                          "name": "file_id"
+                          "name": "entity_id"
                         },
                         {
                           "layout": {
@@ -993,7 +1117,7 @@
                               "ty": 0
                             }
                           },
-                          "name": "ipfs_path"
+                          "name": "ipfs_cid"
                         },
                         {
                           "layout": {
@@ -1002,7 +1126,7 @@
                               "ty": 1
                             }
                           },
-                          "name": "sent_to"
+                          "name": "shared_by"
                         },
                         {
                           "layout": {
@@ -1011,16 +1135,7 @@
                               "ty": 5
                             }
                           },
-                          "name": "file_size"
-                        },
-                        {
-                          "layout": {
-                            "leaf": {
-                              "key": "0x57bda394",
-                              "ty": 5
-                            }
-                          },
-                          "name": "sent_at"
+                          "name": "shared_at"
                         },
                         {
                           "layout": {
@@ -1029,7 +1144,25 @@
                               "ty": 1
                             }
                           },
-                          "name": "sent_by"
+                          "name": "shared_to"
+                        },
+                        {
+                          "layout": {
+                            "leaf": {
+                              "key": "0x57bda394",
+                              "ty": 0
+                            }
+                          },
+                          "name": "file_key"
+                        },
+                        {
+                          "layout": {
+                            "leaf": {
+                              "key": "0x57bda394",
+                              "ty": 0
+                            }
+                          },
+                          "name": "share_id"
                         }
                       ],
                       "name": "Share"
@@ -1947,7 +2080,7 @@
           "composite": {
             "fields": [
               {
-                "name": "file_id",
+                "name": "entity_id",
                 "type": 0,
                 "typeName": "String"
               },
@@ -1957,29 +2090,34 @@
                 "typeName": "String"
               },
               {
-                "name": "ipfs_path",
+                "name": "ipfs_cid",
                 "type": 0,
                 "typeName": "String"
               },
               {
-                "name": "sent_to",
+                "name": "shared_by",
                 "type": 1,
                 "typeName": "AccountId"
               },
               {
-                "name": "file_size",
-                "type": 5,
-                "typeName": "u64"
-              },
-              {
-                "name": "sent_at",
+                "name": "shared_at",
                 "type": 5,
                 "typeName": "Timestamp"
               },
               {
-                "name": "sent_by",
+                "name": "shared_to",
                 "type": 1,
                 "typeName": "AccountId"
+              },
+              {
+                "name": "file_key",
+                "type": 0,
+                "typeName": "String"
+              },
+              {
+                "name": "share_id",
+                "type": 0,
+                "typeName": "String"
               }
             ]
           }

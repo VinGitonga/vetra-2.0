@@ -9,4 +9,6 @@ export interface IVaultItem {
   encryptedSecret: string;
   created: number;
   entityId?: string;
+  sharePublicKey?: string;
+  sharePrivateKey?: string;
 }

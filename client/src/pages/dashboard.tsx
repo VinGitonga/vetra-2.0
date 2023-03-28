@@ -4,10 +4,24 @@ import FolderCard from "@/components/cards/FolderCard";
 import useApi from "@/hooks/useApi";
 import MainLayout from "@/layouts";
 import { NextPageWithLayout } from "@/types/Layout";
+import { useInkathon } from "@scio-labs/use-inkathon";
 import Head from "next/head";
+import { useEffect, useState } from "react";
 
 const Dashboard: NextPageWithLayout = () => {
-  const { generateEncryptedSecret } = useApi();
+  const { activeAccount } = useInkathon();
+  const [secret, setSecret] = useState<string | null>(null);
+  const { getSecret } = useApi();
+
+  useEffect(() => {
+    const getUserSecret = async () => {
+      const secret = await getSecret();
+      setSecret(secret);
+    };
+    getUserSecret();
+  }, [activeAccount]);
+
+  console.log(secret);
   return (
     <>
       <Head>

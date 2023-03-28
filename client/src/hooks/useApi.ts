@@ -29,6 +29,41 @@ const useApi = () => {
     return res.data;
   };
 
+  const getSecret = useCallback(async () => {
+    // get first the encrypted nounce
+    if (activeAccount && activeSigner && api && contract) {
+      const result = await contractQuery(
+        api,
+        activeAccount.address,
+        contract,
+        "getNounce",
+        {}
+      );
+      const encryptedNounce = unwrapResultOrDefault(result, "" as string);
+
+      if (encryptedNounce) {
+        const response = await axios.get<IApiResponse>(
+          `/api/account/generate-secret`
+        );
+
+        let res_info = response.data;
+        if (res_info.status === "ok") {
+          const encryptedSecret = res_info.data.encryptedSecret;
+          const decryptedSecret = await decryptSecret(
+            encryptedSecret,
+            encryptedNounce,
+            activeAccount.address
+          );
+          return decryptedSecret;
+        }
+      } else {
+        return null;
+      }
+    } else {
+      return null;
+    }
+  }, [activeAccount]);
+
   const getEncryptedSecret = useCallback(async () => {
     const response = await axios.get<IApiResponse>(
       `/api/account/generate-secret`
@@ -108,8 +143,8 @@ const useApi = () => {
     try {
       const encryptedNounce = await getEncryptedNounce();
       const resp = await getEncryptedSecret();
-      console.log(resp)
-      console.log(encryptedNounce)
+      console.log(resp);
+      console.log(encryptedNounce);
       if (resp.status === "ok") {
         const encryptedSecret = resp.data.encryptedSecret;
         if (encryptedSecret && encryptedNounce) {
@@ -118,7 +153,6 @@ const useApi = () => {
             encryptedNounce,
             activeAccount.address
           );
-          
           return secret;
         } else {
           return null;
@@ -137,6 +171,7 @@ const useApi = () => {
     updateSession,
     generateEncryptedSecret,
     getUserSecret,
+    getSecret,
   };
 };
 

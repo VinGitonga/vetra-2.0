@@ -14,6 +14,12 @@ const vaultSchema = new Schema(
     created: {
       type: "number",
     },
+    sharePublicKey: {
+      type: "string",
+    },
+    sharePrivateKey: {
+      type: "string",
+    },
   },
   {
     prefix: "vetra:vault",
