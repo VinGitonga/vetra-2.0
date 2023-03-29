@@ -12,6 +12,8 @@ import { IBlocFile } from "@/types/BlocFile";
 import { useAuth } from "@/hooks/store/useAuth";
 import { decryptBlobSecretKey } from "@/utils/locks";
 import { toast } from "react-hot-toast";
+import { useModal } from "@/hooks/store/useModal";
+import { shallow } from "zustand/shallow";
 
 interface FileCardProps {
   file: IBlocFile;
@@ -19,6 +21,18 @@ interface FileCardProps {
 
 const FileCard = ({ file }: FileCardProps) => {
   const userData = useAuth((state) => state.user);
+  const { setShareModal, setFileShareDetails } = useModal(
+    (state) => ({
+      setShareModal: state.setShareModal,
+      setFileShareDetails: state.setFileShareDetails,
+    }),
+    shallow
+  );
+
+  const onClickOpenModal = () => {
+    setFileShareDetails(file);
+    setShareModal(true);
+  };
 
   /**
    * Function to download file from IPFS to local machine
@@ -48,7 +62,6 @@ const FileCard = ({ file }: FileCardProps) => {
       toast.success("File downloaded successfully", { id });
 
       const arrBuf = await resp.data.arrayBuffer();
-
 
       const blob = new Blob([arrBuf], { type: file.type });
 
@@ -85,7 +98,7 @@ const FileCard = ({ file }: FileCardProps) => {
           <Dropdown inline={true} label="">
             <Dropdown.Item className="bg-white">
               <button
-                // onClick={openShareModal}
+                onClick={onClickOpenModal}
                 className="block py-2 px-4 text-sm text-gray-700 cursor-pointer hover:bg-gray-100"
               >
                 Share

@@ -43,7 +43,7 @@ const useApi = () => {
       );
       const encryptedNounce = unwrapResultOrDefault(result, "" as string);
 
-      console.log(encryptedNounce)
+      console.log(encryptedNounce);
 
       if (encryptedNounce) {
         const response = await axios.get<IApiResponse>(
@@ -171,11 +171,38 @@ const useApi = () => {
     }
   }, [activeAccount]);
 
+  const getUserPublicKey = useCallback(async (walletAddress: string) => {
+    const response = await axios.get<IApiResponse>(
+      `/api/account/key/${walletAddress}`
+    );
+
+    let res_info = response.data;
+    if (res_info.status === "ok") {
+      const publicKey = res_info.data.publicKey;
+      return publicKey as string;
+    } else {
+      return null;
+    }
+  }, []);
+
+  const addAddressToAccessFile = useCallback(
+    async (address: string, entityId: string) => {
+      const response = await axios.post<IApiResponse>(`/api/account/share`, {
+        address,
+        entityId,
+      });
+      return response.data;
+    },
+    []
+  );
+
   return {
     updateSession,
     generateEncryptedSecret,
     getUserSecret,
     getSecret,
+    getUserPublicKey,
+    addAddressToAccessFile,
   };
 };
 

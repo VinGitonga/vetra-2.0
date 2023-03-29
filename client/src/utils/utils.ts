@@ -77,3 +77,9 @@ export const generateRandomNumbers = (length: number = 6) => {
 
   return nanoid();
 };
+
+export const generateRandomString = (length: number = 6) => {
+  const nanoid = customAlphabet("1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZ", length);
+
+  return nanoid();
+};
