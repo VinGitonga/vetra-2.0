@@ -41,7 +41,8 @@ const UploadFile = ({ isOpen, closeModal, setIsOpen }: UploadFileProps) => {
   const [localNodeUrl] = useState<string>("http://localhost:3004");
   const [productionNodeUrl] = useState<string>("https://api.estuary.tech");
   const [blocs, setBlocs] = useState<IBloc[]>([]);
-  const { getUserSecret } = useApi();
+  const { getUserSecret, getSecret } = useApi();
+  const [encryptionSecret, setEncryptionSecret] = useState<string | null>();
 
   const resetFields = () => {
     setFiles([]);
@@ -51,6 +52,11 @@ const UploadFile = ({ isOpen, closeModal, setIsOpen }: UploadFileProps) => {
 
   const closeDirModal = () => {
     setShow(false);
+  };
+
+  const getEncSecret = async () => {
+    const secret = await getSecret();
+    setEncryptionSecret(secret);
   };
 
   async function getFolders() {
@@ -128,10 +134,6 @@ const UploadFile = ({ isOpen, closeModal, setIsOpen }: UploadFileProps) => {
       return;
     }
 
-    // get the secret
-    const secret = await getUserSecret();
-
-
     // encrypt file
 
     const { blob, iv, exportedkey } = await encryptBlob(
@@ -142,12 +144,12 @@ const UploadFile = ({ isOpen, closeModal, setIsOpen }: UploadFileProps) => {
 
     let encryptedSecret: string | null = null;
 
-    if (!secret) {
+    if (!encryptionSecret) {
       toast.error("Please set your secret first");
       return;
     }
 
-    encryptedSecret = await encryptBlobSecretKey(secret, stringExportedKey);
+    encryptedSecret = await encryptBlobSecretKey(encryptionSecret, stringExportedKey);
 
     // const decryptedBlob = await decryptBlob(blob, iv, exportedkey);
 
@@ -296,6 +298,7 @@ const UploadFile = ({ isOpen, closeModal, setIsOpen }: UploadFileProps) => {
   useEffect(() => {
     if (activeAccount) {
       getFolders();
+      getEncSecret()
     }
   }, [activeAccount]);
 

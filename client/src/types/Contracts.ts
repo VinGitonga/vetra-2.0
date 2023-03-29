@@ -2,11 +2,18 @@ export enum ContractID {
     Vetra = "Vetra",
 }
 export interface IRequest {
-    message: string;
+    msg: string;
     addressedTo: string;
     sentBy: string;
     sentAt: number;
-    requestId: string;
+    requestId: number;
 }
 
+export interface IReply {
+    msg: string;
+    requestId: number;
+    sentBy: string;
+    sentAt: number;
+    replyId: number;
+}
 

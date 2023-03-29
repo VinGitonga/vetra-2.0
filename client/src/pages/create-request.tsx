@@ -58,7 +58,7 @@ const CreateRequest: NextPageWithLayout = () => {
         contract,
         "createRequest",
         {},
-        [message, address, requestId],
+        [message, address, parseInt(requestId)],
         ({ status }) => {
           if (status.isInBlock) {
             toast.success("Request sent successfully");

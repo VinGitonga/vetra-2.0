@@ -4,6 +4,7 @@ import redisClient from "@/utils/redis-client";
 import { NextApiRequest, NextApiResponse } from "next";
 import vaultSchema from "@/schemas/vault";
 import { IVaultItem } from "@/types/Secret";
+import { generateKeyPair } from "@/utils/asymetric";
 
 export default withSessionRoute(handler);
 
@@ -17,27 +18,21 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 }
 
 async function generateSecretKey(req: NextApiRequest, res: NextApiResponse) {
+  const { walletAddress } = req.body;
   const redis = new redisClient();
   const client = redis.initClient();
-  const user = req.session.user;
-  if (!user) {
-    res.status(401).json({
-      status: "error",
-      msg: "Unauthorized",
-    });
-    return;
-  }
 
-  
   try {
-    const { encryptedSecret, encryptedNounce, timestamp } = await generateSecret(
-      user.address
-    );
+    const { encryptedSecret, encryptedNounce, timestamp } =
+      await generateSecret(walletAddress);
+    const { publicKey, secretKey } = generateKeyPair();
     const vaultRepo = (await client).fetchRepository(vaultSchema);
     const newVaultItem = vaultRepo.createEntity({
-      owner: user.address,
+      owner: walletAddress,
       encryptedSecret,
       created: timestamp,
+      sharePublicKey: publicKey,
+      sharePrivateKey: secretKey,
     });
 
     await vaultRepo.save(newVaultItem);

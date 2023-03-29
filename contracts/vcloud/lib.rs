@@ -57,19 +57,11 @@ mod vcloud {
     #[ink(event)]
     pub struct ShareCreated {
         #[ink(topic)]
-        file_id: String,
+        share_id: String,
         #[ink(topic)]
-        file_name: String,
+        shared_by: AccountId,
         #[ink(topic)]
-        ipfs_path: String,
-        #[ink(topic)]
-        sent_to: AccountId,
-        #[ink(topic)]
-        file_size: u64,
-        #[ink(topic)]
-        sent_at: Timestamp,
-        #[ink(topic)]
-        sent_by: AccountId,
+        shared_to: AccountId,
     }
 
     #[derive(scale::Encode, scale::Decode, Debug, PartialEq, Eq, Clone)]
@@ -168,25 +160,27 @@ mod vcloud {
         derive(scale_info::TypeInfo, ink::storage::traits::StorageLayout)
     )]
     pub struct Share {
-        file_id: String,
+        entity_id: String,
         file_name: String,
-        ipfs_path: String,
-        sent_to: AccountId,
-        file_size: u64,
-        sent_at: Timestamp,
-        sent_by: AccountId,
-    } 
+        ipfs_cid: String,
+        shared_by: AccountId,
+        shared_at: Timestamp,
+        shared_to: AccountId,
+        file_key: String,
+        share_id: String,
+    }
 
     impl Default for Share {
         fn default() -> Self {
             Self {
-                file_id: String::from(""),
+                entity_id: String::from(""),
                 file_name: String::from(""),
-                ipfs_path: String::from(""),
-                sent_to: AccountId::from([0x0; 32]),
-                file_size: 0,
-                sent_at: Timestamp::default(),
-                sent_by: AccountId::from([0x0; 32]),
+                ipfs_cid: String::from(""),
+                shared_by: AccountId::from([0x0; 32]),
+                shared_at: Timestamp::default(),
+                shared_to: AccountId::from([0x0; 32]),
+                file_key: String::from(""),
+                share_id: String::from(""),
             }
         }
     }
@@ -200,8 +194,8 @@ mod vcloud {
         replies: Mapping<u64, Reply>,
         replies_items: Vec<u64>,
         vault: Mapping<AccountId, String>,
-        shared: Mapping<u64, Share>,
-        shared_items: Vec<u64>,
+        shared: Mapping<String, Share>,
+        shared_items: Vec<String>,
     }
 
     impl Vcloud {
@@ -215,6 +209,8 @@ mod vcloud {
                 replies: Mapping::new(),
                 replies_items: Vec::new(),
                 vault: Mapping::new(),
+                shared: Mapping::new(),
+                shared_items: Vec::new(),
             }
         }
         /// add new user
@@ -301,7 +297,7 @@ mod vcloud {
             let mut requests = Vec::new();
             for request_id in self.requests_items.iter() {
                 let request = self.requests.get(request_id).unwrap();
-                if request.addressed_to == sent_by {
+                if request.sent_by == sent_by {
                     requests.push(request);
                 }
             }
@@ -407,27 +403,32 @@ mod vcloud {
         }
         /// create a share for a document present in our web3 storage with a wallet address or email address
         #[ink(message)]
-        pub fn create_share(&mut self, file_id: String, file_name: String, sent_to: AccountId, ipfs_path: String, sent_by: AccountId, file_size: u64) -> Result<()> {
+        pub fn create_share(
+            &mut self,
+            entity_id: String,
+            file_name: String,
+            ipfs_cid: String,
+            shared_to: AccountId,
+            file_key: String,
+            share_id: String,
+        ) -> Result<()> {
             let caller = self.env().caller();
             let share = Share {
-                file_id,
+                entity_id,
                 file_name,
-                sent_to,
-                ipfs_path,
-                sent_by: caller,
-                sent_at: self.env().block_timestamp(),
-                file_size,
+                ipfs_cid,
+                shared_to,
+                shared_at: self.env().block_timestamp(),
+                file_key,
+                share_id: share_id.clone(),
+                shared_by: caller,
             };
-            self.shares.insert(share.file_id.clone(), &share);
-            self.shares_items.push(share.file_id.clone());
-            self.env().emit_event(File Shared Succefully {
-                file_id,
-                file_name,
-                sent_to,
-                ipfs_path,
-                sent_by: caller.clone(),
-                file_size,
-                sent_at: self.env().block_timestamp(),
+            self.shared.insert(share_id.clone(), &share);
+            self.shared_items.push(share_id.clone());
+            self.env().emit_event(ShareCreated {
+                share_id,
+                shared_to,
+                shared_by: caller,
             });
             Ok(())
         }
@@ -436,8 +437,8 @@ mod vcloud {
         #[ink(message)]
         pub fn get_shared_files(&self) -> Vec<Share> {
             let mut shares = Vec::new();
-            for file_id in self.shares_items.iter() {
-                let share = self.shares.get(file_id).unwrap();
+            for file_id in self.shared_items.iter() {
+                let share = self.shared.get(file_id).unwrap();
                 shares.push(share);
             }
             shares
@@ -445,11 +446,12 @@ mod vcloud {
 
         /// get shared Files by sent_by
         #[ink(message)]
-        pub fn get_shared_files_by_sent_by(&self, sent_by: AccountId) -> Vec<Share> {
+        pub fn get_shared_files_by_sent_by(&self) -> Vec<Share> {
+            let caller = self.env().caller();
             let mut shares = Vec::new();
-            for file_id in self.shares_items.iter() {
-                let share = self.shares.get(file_id).unwrap();
-                if share.sent_by == sent_by {
+            for file_id in self.shared_items.iter() {
+                let share = self.shared.get(file_id).unwrap();
+                if share.shared_by == caller {
                     shares.push(share);
                 }
             }
@@ -457,17 +459,94 @@ mod vcloud {
         }
 
         /// get shared Files by sent_to
-        #[ink(message)] 
-        pub fn get_shared_files_by_sent_to(&self, sent_to: AccountId) -> Vec<Share> {
+        #[ink(message)]
+        pub fn get_shared_files_by_sent_to(&self) -> Vec<Share> {
+            let caller = self.env().caller();
             let mut shares = Vec::new();
-            for file_id in self.shares_items.iter() {
-                let share = self.shares.get(file_id).unwrap();
-                if share.sent_to == sent_to {
+            for file_id in self.shared_items.iter() {
+                let share = self.shared.get(file_id).unwrap();
+                if share.shared_to == caller {
                     shares.push(share);
                 }
             }
             shares
         }
-    }
 
+        /// Adds User with unique nounce
+        #[ink(message)]
+        pub fn add_user_with_nounce(
+            &mut self,
+            email: String,
+            phone: String,
+            nounce: String,
+        ) -> Result<()> {
+            let caller = self.env().caller();
+            if self.users.contains(&caller) {
+                return Err(Error::UserAlreadyExists);
+            }
+
+            let user = User {
+                email,
+                phone,
+                address: caller,
+            };
+
+            self.users.insert(caller, &user);
+            self.users_items.push(caller);
+
+            self.vault.insert(caller, &nounce);
+
+            self.env().emit_event(UserCreated { user: caller });
+
+            Ok(())
+        }
+
+        /// Fn that shares a file and automatically sends a reply to the request
+        #[ink(message)]
+        pub fn share_with_reply(
+            &mut self,
+            entity_id: String,
+            file_name: String,
+            ipfs_cid: String,
+            shared_to: AccountId,
+            file_key: String,
+            share_id: String,
+            request_id: u64,
+            reply_id: u64,
+        ) -> Result<()> {
+            let caller = self.env().caller();
+            let share = Share {
+                entity_id,
+                file_name,
+                ipfs_cid,
+                shared_to,
+                shared_at: self.env().block_timestamp(),
+                file_key,
+                share_id: share_id.clone(),
+                shared_by: caller.clone(),
+            };
+            self.shared.insert(share_id.clone(), &share);
+            self.shared_items.push(share_id.clone());
+            let msg = String::from("The requested file has been shared");
+
+            let reply = Reply {
+                request_id,
+                reply_id,
+                msg,
+                sent_by: caller.clone(),
+                sent_at: self.env().block_timestamp(),
+            };
+
+            self.replies.insert(reply_id, &reply);
+
+            self.replies_items.push(reply_id);
+
+            self.env().emit_event(ShareCreated {
+                share_id,
+                shared_to,
+                shared_by: caller.clone(),
+            });
+            Ok(())
+        }
+    }
 }
