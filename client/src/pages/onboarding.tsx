@@ -84,6 +84,7 @@ const Onboarding: NextPageWithLayout = () => {
                 if (result.status.isInBlock) {
                   toast.success("Account created successfully");
                   console.log(result.events);
+                  resetFields();
                 }
               }
             );
