@@ -1,10 +1,29 @@
 import PrimaryButton from "@/components/buttons/PrimaryButton";
 import FileCard from "@/components/cards/FIleCard";
+import useDb from "@/hooks/useDb";
+import useInterval from "@/hooks/useInterval";
 import MainLayout from "@/layouts";
+import { IBlocFile } from "@/types/BlocFile";
 import { NextPageWithLayout } from "@/types/Layout";
 import Head from "next/head";
+import { useState } from "react";
+import { toast } from "react-hot-toast";
 
 const SharedWithMe: NextPageWithLayout = () => {
+  const { getFilesSharedWithMe } = useDb();
+  const [files, setFiles] = useState<IBlocFile[]>([]);
+
+  const getFiles = async () => {
+    const resp = await getFilesSharedWithMe();
+    if (resp.status === "ok") {
+      setFiles(resp.data);
+    } else {
+      toast.error(resp.msg);
+    }
+  };
+
+  useInterval(() => getFiles(), 3000);
+
   return (
     <>
       <Head>
@@ -20,11 +39,17 @@ const SharedWithMe: NextPageWithLayout = () => {
           </h2>
           <PrimaryButton text={"Refresh Files"} isWidthFull={false} />
         </div>
-        <div className="grid grid-cols-1 gap-8 xl:gap-12 md:grid-cols-4 mb-4">
-          {[...Array(9)].map((_, i) => (
-            <FileCard key={i} file={"File Name"} />
-          ))}
-        </div>
+        {files.length > 0 ? (
+          <div className="grid grid-cols-1 gap-8 xl:gap-12 md:grid-cols-4 mb-4">
+            {files.map((fileItem) => (
+              <FileCard key={fileItem.entityId} file={fileItem} />
+            ))}
+          </div>
+        ) : (
+          <div className="font-bold text-gray-700 mt-2">
+            No Files yet! Request Some 🚀
+          </div>
+        )}
       </div>
     </>
   );

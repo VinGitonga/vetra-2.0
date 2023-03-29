@@ -6,6 +6,7 @@ declare module "iron-session" {
       address?: string;
       email?: string;
       phone?: string;
+      secret?: string;
     };
   }
 }

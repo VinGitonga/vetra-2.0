@@ -1,28 +1,34 @@
 import { withSessionRoute } from "@/lib/withSession";
 import { NextApiRequest, NextApiResponse } from "next";
 
-export default withSessionRoute(auth);
+export default withSessionRoute(handler);
+
+async function handler(req: NextApiRequest, res: NextApiResponse) {
+  switch (req.method) {
+    case "POST":
+      return auth(req, res);
+    default:
+      return res.status(405).json({
+        status: "error",
+        msg: "Method not allowed",
+      });
+  }
+}
 
 async function auth(req: NextApiRequest, res: NextApiResponse) {
-  if (req.method === "POST") {
-    const { address, email, phone } = req.body;
-    req.session.user = {
-      address,
-      email,
-      phone,
-    };
+  const { address, email, phone, secret } = req.body;
+  req.session.user = {
+    address,
+    email,
+    phone,
+    secret,
+  };
 
-    await req.session.save();
+  await req.session.save();
 
-    res.status(200).json({
-      status: "ok",
-      msg: "Session Updated",
-      data: req.session.user,
-    });
-  } else {
-    res.status(500).json({
-      status: "error",
-      msg: "Invalid Method Type",
-    });
-  }
+  res.status(200).json({
+    status: "ok",
+    msg: "Session Updated",
+    data: req.session.user,
+  });
 }

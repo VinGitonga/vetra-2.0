@@ -14,8 +14,8 @@ import { IEstuaryResponseData } from "@/types/Estuary";
 import { IBlocFile } from "@/types/BlocFile";
 import { IBloc } from "@/types/Bloc";
 import SelectBloc from "./SelectBloc";
-import useApi from "@/hooks/useApi";
 import { encryptBlobSecretKey } from "@/utils/locks";
+import { useAuth } from "@/hooks/store/useAuth";
 
 interface UploadFileProps {
   isOpen: boolean;
@@ -41,8 +41,7 @@ const UploadFile = ({ isOpen, closeModal, setIsOpen }: UploadFileProps) => {
   const [localNodeUrl] = useState<string>("http://localhost:3004");
   const [productionNodeUrl] = useState<string>("https://api.estuary.tech");
   const [blocs, setBlocs] = useState<IBloc[]>([]);
-  const { getUserSecret, getSecret } = useApi();
-  const [encryptionSecret, setEncryptionSecret] = useState<string | null>();
+  const userData = useAuth((state) => state.user);
 
   const resetFields = () => {
     setFiles([]);
@@ -52,11 +51,6 @@ const UploadFile = ({ isOpen, closeModal, setIsOpen }: UploadFileProps) => {
 
   const closeDirModal = () => {
     setShow(false);
-  };
-
-  const getEncSecret = async () => {
-    const secret = await getSecret();
-    setEncryptionSecret(secret);
   };
 
   async function getFolders() {
@@ -105,12 +99,6 @@ const UploadFile = ({ isOpen, closeModal, setIsOpen }: UploadFileProps) => {
     // @ts-ignore
     const percent = Math.floor((loaded * 100) / total);
     setProgress(percent);
-    // generate toast id
-    const id = generateRandomNumbers().toString();
-    // show loading toast
-    if (percent < 100) {
-      toast.loading(`Uploading ${percent}%`, { id });
-    }
   };
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
@@ -144,12 +132,17 @@ const UploadFile = ({ isOpen, closeModal, setIsOpen }: UploadFileProps) => {
 
     let encryptedSecret: string | null = null;
 
+    const encryptionSecret = userData.secret;
+
     if (!encryptionSecret) {
       toast.error("Please set your secret first");
       return;
     }
 
-    encryptedSecret = await encryptBlobSecretKey(encryptionSecret, stringExportedKey);
+    encryptedSecret = await encryptBlobSecretKey(
+      encryptionSecret,
+      stringExportedKey
+    );
 
     // const decryptedBlob = await decryptBlob(blob, iv, exportedkey);
 
@@ -298,11 +291,9 @@ const UploadFile = ({ isOpen, closeModal, setIsOpen }: UploadFileProps) => {
   useEffect(() => {
     if (activeAccount) {
       getFolders();
-      getEncSecret()
     }
   }, [activeAccount]);
 
-  console.log(blocs);
   return (
     <>
       <SelectBloc

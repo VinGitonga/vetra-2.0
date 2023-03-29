@@ -18,12 +18,14 @@ const useApi = () => {
   const updateSession = async (
     address: string,
     email: string,
-    phone: string
+    phone: string,
+    secret: string | null
   ) => {
     const res = await axios.post<IApiResponse>("/api/account/auth", {
       address,
       email,
       phone,
+      secret,
     });
 
     return res.data;

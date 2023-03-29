@@ -13,7 +13,7 @@ import useApi from "./useApi";
 const useAuthStateListener = () => {
   const { api, activeAccount } = useInkathon();
   const { contract } = useRegisteredContract(ContractID.Vetra);
-  const { updateSession } = useApi();
+  const { updateSession, getSecret } = useApi();
 
   const setUser = useAuth((state) => state.setUser);
 
@@ -28,16 +28,21 @@ const useAuthStateListener = () => {
         [activeAccount.address]
       );
       const newRes = unwrapResultOrDefault(result, {} as IUser);
+      const secret = await getSecret();
 
       if (newRes) {
-        setUser(newRes);
+        setUser({
+          ...newRes,
+          secret,
+        });
 
         try {
           //   update session
           await updateSession(
             newRes.address ?? null,
             newRes.email ?? null,
-            newRes.phone ?? null
+            newRes.phone ?? null,
+            secret
           );
         } catch (err) {}
       } else {

@@ -14,4 +14,5 @@ export interface IBlocFile {
     updated: number,
     encryptedKey: string,
     iv: string
+    entityId?: string;
 }
