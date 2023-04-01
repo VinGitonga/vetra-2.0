@@ -39,11 +39,11 @@ const RequestItem = ({ data }: RequestItemProps) => {
     setShowResponses(!show);
   };
 
-  const fetchRequestReplies = useCallback(async () => {
+  const fetchRequestReplies = async () => {
     const all_replies = await getRepliesByRequest(data.requestId);
     console.log(all_replies);
     setReplies(all_replies);
-  }, [activeAccount]);
+  }
 
   const handleSendReply = async () => {
     if (!msg) {
