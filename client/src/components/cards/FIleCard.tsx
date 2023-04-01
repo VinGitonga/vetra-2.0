@@ -14,13 +14,19 @@ import { decryptBlobSecretKey } from "@/utils/locks";
 import { toast } from "react-hot-toast";
 import { useModal } from "@/hooks/store/useModal";
 import { shallow } from "zustand/shallow";
+import useApi from "@/hooks/useApi";
+import { decrypt } from "@/utils/asymetric";
+import useTransaction from "@/hooks/useTransaction";
 
 interface FileCardProps {
   file: IBlocFile;
+  isShared?: boolean;
 }
 
-const FileCard = ({ file }: FileCardProps) => {
+const FileCard = ({ file, isShared = false }: FileCardProps) => {
   const userData = useAuth((state) => state.user);
+  const { getFileShareInfo } = useTransaction();
+  const { getPrivateSecretKey } = useApi();
   const { setShareModal, setFileShareDetails } = useModal(
     (state) => ({
       setShareModal: state.setShareModal,
@@ -33,6 +39,61 @@ const FileCard = ({ file }: FileCardProps) => {
     setFileShareDetails(file);
     setShareModal(true);
   };
+
+  async function downloadSharedFile() {
+    const id = toast.loading("Commencing Download ...");
+    try {
+      const secretKey = await getPrivateSecretKey(userData.address);
+      const fileShareInfo = await getFileShareInfo(file.entityId);
+      if (secretKey) {
+        toast.loading("Decrypting the secret ...", { id });
+        const decryptedFileKey = decrypt(fileShareInfo.fileKey, secretKey);
+
+        // Convert the decrypted file key to JSONWebKey
+        const jwk = JSON.parse(decryptedFileKey) as JsonWebKey;
+
+        toast.loading("Downloading file ...", { id });
+
+        const resp = await axios.get(file.retrievalUrl, {
+          responseType: "blob",
+          headers: {
+            Accept: "application/json",
+          },
+        });
+
+        toast.success("File downloaded successfully", { id });
+
+        const arrBuf = await resp.data.arrayBuffer();
+
+        const blob = new Blob([arrBuf], { type: file.type });
+
+        toast.loading("Decrypting file...", { id });
+
+        const decryptedBlob = await decryptBlob(blob, file.iv, jwk);
+
+        toast.success("File decrypted successfully", { id });
+
+        const url = window.URL.createObjectURL(decryptedBlob);
+
+        const link = document.createElement("a");
+
+        link.href = url;
+
+        link.setAttribute("download", file.displayName);
+
+        document.body.appendChild(link);
+
+        link.click();
+
+        setTimeout(() => window.URL.revokeObjectURL(url), 3000);
+      }
+    } catch (err) {
+      console.log(err);
+      toast.error("Error downloading file");
+    } finally {
+      toast.dismiss();
+    }
+  }
 
   /**
    * Function to download file from IPFS to local machine
@@ -106,7 +167,7 @@ const FileCard = ({ file }: FileCardProps) => {
             </Dropdown.Item>
             <Dropdown.Item className="bg-white">
               <button
-                onClick={downloadFile}
+                onClick={isShared ? downloadSharedFile : downloadFile}
                 className="block py-2 px-4 text-sm text-gray-700 cursor-pointer hover:bg-gray-100"
               >
                 Download

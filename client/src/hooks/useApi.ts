@@ -185,6 +185,20 @@ const useApi = () => {
     }
   }, []);
 
+  const getPrivateSecretKey = useCallback(async (walletAddress: string) => {
+    const response = await axios.get<IApiResponse>(
+      `/api/account/private/${walletAddress}`
+    );
+
+    let res_info = response.data;
+    if (res_info.status === "ok") {
+      const privateKey = res_info.data.privateKey;
+      return privateKey as string;
+    } else {
+      return null;
+    }
+  }, []);
+
   const addAddressToAccessFile = useCallback(
     async (address: string, entityId: string) => {
       const response = await axios.post<IApiResponse>(`/api/account/share`, {
@@ -203,6 +217,7 @@ const useApi = () => {
     getSecret,
     getUserPublicKey,
     addAddressToAccessFile,
+    getPrivateSecretKey,
   };
 };
 

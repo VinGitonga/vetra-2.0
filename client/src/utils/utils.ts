@@ -1,5 +1,6 @@
 import prettyBytes from "pretty-bytes";
 import { customAlphabet } from "nanoid";
+import { IShare } from "@/types/Contracts";
 
 export const getDateAdded = (addedAt: string) =>
   new Date(addedAt).toLocaleString();
@@ -83,3 +84,6 @@ export const generateRandomString = (length: number = 6) => {
 
   return nanoid();
 };
+
+export const getFileShared = (filesShared: IShare[], entityId: string) =>
+  filesShared.filter((item) => item.entityId === entityId)[0];

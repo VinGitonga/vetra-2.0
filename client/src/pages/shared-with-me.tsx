@@ -42,7 +42,11 @@ const SharedWithMe: NextPageWithLayout = () => {
         {files.length > 0 ? (
           <div className="grid grid-cols-1 gap-8 xl:gap-12 md:grid-cols-4 mb-4">
             {files.map((fileItem) => (
-              <FileCard key={fileItem.entityId} file={fileItem} />
+              <FileCard
+                key={fileItem.entityId}
+                file={fileItem}
+                isShared={true}
+              />
             ))}
           </div>
         ) : (
