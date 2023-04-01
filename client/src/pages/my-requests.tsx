@@ -7,6 +7,7 @@ import { useInkathon } from "@scio-labs/use-inkathon";
 import { IRequest } from "@/types/Contracts";
 import { useEffect, useState } from "react";
 import useTransaction from "@/hooks/useTransaction";
+import useInterval from "@/hooks/useInterval";
 
 const MyFileRequests: NextPageWithLayout = () => {
   const { activeAccount } = useInkathon();
@@ -20,10 +21,8 @@ const MyFileRequests: NextPageWithLayout = () => {
     }
   };
 
-  console.log("requests", requests);
-  useEffect(() => {
-    handleRefreshRequests();
-  }, [activeAccount]);
+  useInterval(() => handleRefreshRequests(), 3000);
+
   return (
     <>
       <Head>
@@ -47,9 +46,7 @@ const MyFileRequests: NextPageWithLayout = () => {
                 <RequestItem key={item.sentAt} data={item} />
               ))
             ) : (
-              <div className="font-bold text-gray-700">
-                No New Requests
-              </div>
+              <div className="font-bold text-gray-700">No New Requests</div>
             )}
           </div>
         </div>

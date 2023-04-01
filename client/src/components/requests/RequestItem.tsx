@@ -5,7 +5,7 @@ import PrimaryButton from "../buttons/PrimaryButton";
 import ResponseInput from "./ResponseInput";
 import ResponseItem from "./ResponseItem";
 import { toast } from "react-hot-toast";
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { ContractID, IReply, IRequest } from "@/types/Contracts";
 import {
   contractTx,
@@ -39,10 +39,11 @@ const RequestItem = ({ data }: RequestItemProps) => {
     setShowResponses(!show);
   };
 
-  const fetchRequestReplies = async () => {
+  const fetchRequestReplies = useCallback(async () => {
     const all_replies = await getRepliesByRequest(data.requestId);
+    console.log(all_replies);
     setReplies(all_replies);
-  };
+  }, [activeAccount]);
 
   const handleSendReply = async () => {
     if (!msg) {

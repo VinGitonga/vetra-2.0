@@ -24,6 +24,8 @@ const SharedWithMe: NextPageWithLayout = () => {
 
   useInterval(() => getFiles(), 3000);
 
+  console.log(files)
+
   return (
     <>
       <Head>

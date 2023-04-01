@@ -1,4 +1,5 @@
 import PrimaryButton from "@/components/buttons/PrimaryButton";
+import useInterval from "@/hooks/useInterval";
 import useTransaction from "@/hooks/useTransaction";
 import MainLayout from "@/layouts";
 import { IShare } from "@/types/Contracts";
@@ -25,9 +26,9 @@ const ShareTransactions: NextPageWithLayout = () => {
     }
   };
 
-  useEffect(() => {
-    fetchShares();
-  }, [activeAccount]);
+  console.log(shares)
+
+  useInterval(() => fetchShares(), 4000);
   return (
     <>
       <Head>
