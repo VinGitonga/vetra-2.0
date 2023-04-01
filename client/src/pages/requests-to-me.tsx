@@ -47,7 +47,7 @@ const RequestsToMe: NextPageWithLayout = () => {
                 <RequestItem key={item.sentAt} data={item} />
               ))
             ) : (
-              <div className="font-bold text-gray-700 dark:text-white">
+              <div className="font-bold text-gray-700">
                 No New Requests
               </div>
             )}
