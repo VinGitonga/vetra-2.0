@@ -1,4 +1,5 @@
-import { ContractID, IReply, IRequest } from "@/types/Contracts";
+import { ContractID, IReply, IRequest, IShare } from "@/types/Contracts";
+import { getFileShared } from "@/utils/utils";
 import {
   contractQuery,
   unwrapResultOrDefault,
@@ -58,27 +59,69 @@ const useTransaction = () => {
     }
   }, [activeAccount]);
 
-  const getRepliesByRequest = useCallback(async (requestId: number) => {
+  const getRepliesByRequest = useCallback(
+    async (requestId: number) => {
+      if (contract && api && activeAccount) {
+        const result = await contractQuery(
+          api,
+          activeAccount?.address,
+          contract,
+          "getRepliesByRequest",
+          {},
+          [requestId]
+        );
+        const replies = unwrapResultOrDefault(result, [] as IReply[]);
+        console.log(replies);
+        return replies;
+      }
+    },
+    [activeAccount]
+  );
+
+  const getFileShareInfo = useCallback(
+    async (entityId: string) => {
+      if (contract && api && activeAccount) {
+        const result = await contractQuery(
+          api,
+          activeAccount.address,
+          contract,
+          "getSharedFilesBySentTo",
+          {}
+        );
+
+        const filesShared = unwrapResultOrDefault(result, [] as IShare[]);
+
+        const fileShared = getFileShared(filesShared, entityId);
+
+        return fileShared;
+      }
+    },
+    [activeAccount]
+  );
+
+  const getMyShareTransactions = useCallback(async () => {
     if (contract && api && activeAccount) {
       const result = await contractQuery(
         api,
-        activeAccount?.address,
+        activeAccount.address,
         contract,
-        "getRepliesByRequest",
-        {},
-        [requestId]
+        "getSharedFilesBySentBy",
+        {}
       );
-      const replies = unwrapResultOrDefault(result, [] as IReply[]);
-      console.log(replies)
-      return replies;
+
+      const myShares = unwrapResultOrDefault(result, [] as IShare[]);
+
+      return myShares;
     }
-  }, [activeAccount]);
+  }, []);
 
   return {
     getRequestBySentBy,
     getReply,
     getRequestsByAddressedTo,
     getRepliesByRequest,
+    getFileShareInfo,
+    getMyShareTransactions,
   };
 };
 

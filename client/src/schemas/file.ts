@@ -1,6 +1,17 @@
 import { Entity, Schema } from "redis-om";
 
-class FileItem extends Entity {}
+class FileItem extends Entity {
+  addAllowedAddress(address: string) {
+    // @ts-ignore
+    this.allowedAddresses.push(address);
+  }
+  removeAllowedAddress(address: string) {
+    // @ts-ignore
+    this.allowedAddresses = this.allowedAddresses.filter(
+      (allowedAddress: string) => allowedAddress !== address
+    );
+  }
+}
 
 const fileSchema = new Schema(
   FileItem,
@@ -41,7 +52,7 @@ const fileSchema = new Schema(
     created: {
       type: "number",
     },
-    updated : {
+    updated: {
       type: "number",
     },
     encryptedKey: {
@@ -49,7 +60,7 @@ const fileSchema = new Schema(
     },
     iv: {
       type: "string",
-    }
+    },
   },
   {
     prefix: "vetra:files",

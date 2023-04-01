@@ -1,25 +1,99 @@
 import { Dropdown } from "flowbite-react";
 import { FileIcon, defaultStyles } from "react-file-icon";
 import { BsFillFileEarmarkFill } from "react-icons/bs";
-import { getFileExtension, getFileSize, getSlicedAddress } from "@/utils/utils";
+import {
+  decryptBlob,
+  getFileExtension,
+  getFileSize,
+  getSlicedAddress,
+} from "@/utils/utils";
 import axios from "axios";
-// import { useContext } from "react";
-// import { ModalContext } from "../../context/ShareModalContext";
+import { IBlocFile } from "@/types/BlocFile";
+import { useAuth } from "@/hooks/store/useAuth";
+import { decryptBlobSecretKey } from "@/utils/locks";
+import { toast } from "react-hot-toast";
+import { useModal } from "@/hooks/store/useModal";
+import { shallow } from "zustand/shallow";
+import useApi from "@/hooks/useApi";
+import { decrypt } from "@/utils/asymetric";
+import useTransaction from "@/hooks/useTransaction";
 
 interface FileCardProps {
-  file: any;
+  file: IBlocFile;
+  isShared?: boolean;
 }
 
-const FileCard = ({ file }: FileCardProps) => {
-  //   const { setModalOpen, setFileDetails } = useContext(ModalContext);
+const FileCard = ({ file, isShared = false }: FileCardProps) => {
+  const userData = useAuth((state) => state.user);
+  const { getFileShareInfo } = useTransaction();
+  const { getPrivateSecretKey } = useApi();
+  const { setShareModal, setFileShareDetails } = useModal(
+    (state) => ({
+      setShareModal: state.setShareModal,
+      setFileShareDetails: state.setFileShareDetails,
+    }),
+    shallow
+  );
 
-  //   /**
-  //    * this method takes in the parameter file the sets file details to it in order to be used when button Share is clicked
-  //    */
-  //   const openShareModal = () => {
-  //     setFileDetails(file);
-  //     setModalOpen(true);
-  //   };
+  const onClickOpenModal = () => {
+    setFileShareDetails(file);
+    setShareModal(true);
+  };
+
+  async function downloadSharedFile() {
+    const id = toast.loading("Commencing Download ...");
+    try {
+      const secretKey = await getPrivateSecretKey(userData.address);
+      const fileShareInfo = await getFileShareInfo(file.entityId);
+      if (secretKey) {
+        toast.loading("Decrypting the secret ...", { id });
+        const decryptedFileKey = decrypt(fileShareInfo.fileKey, secretKey);
+
+        // Convert the decrypted file key to JSONWebKey
+        const jwk = JSON.parse(decryptedFileKey) as JsonWebKey;
+
+        toast.loading("Downloading file ...", { id });
+
+        const resp = await axios.get(file.retrievalUrl, {
+          responseType: "blob",
+          headers: {
+            Accept: "application/json",
+          },
+        });
+
+        toast.success("File downloaded successfully", { id });
+
+        const arrBuf = await resp.data.arrayBuffer();
+
+        const blob = new Blob([arrBuf], { type: file.type });
+
+        toast.loading("Decrypting file...", { id });
+
+        const decryptedBlob = await decryptBlob(blob, file.iv, jwk);
+
+        toast.success("File decrypted successfully", { id });
+
+        const url = window.URL.createObjectURL(decryptedBlob);
+
+        const link = document.createElement("a");
+
+        link.href = url;
+
+        link.setAttribute("download", file.displayName);
+
+        document.body.appendChild(link);
+
+        link.click();
+
+        setTimeout(() => window.URL.revokeObjectURL(url), 3000);
+      }
+    } catch (err) {
+      console.log(err);
+      toast.error("Error downloading file");
+    } finally {
+      toast.dismiss();
+    }
+  }
 
   /**
    * Function to download file from IPFS to local machine
@@ -27,35 +101,56 @@ const FileCard = ({ file }: FileCardProps) => {
 
   async function downloadFile() {
     try {
-      const resp = await axios.get(
-        `https://${file.attributes.fileCid}.ipfs.w3s.link`,
-        {
-          responseType: "blob",
-          headers: {
-            Accept: "application/json",
-          },
-        }
+      const id = toast.loading("Decrypting secrets...");
+
+      const decryptedFileKey = await decryptBlobSecretKey(
+        userData.secret,
+        file.encryptedKey
       );
-      console.log(resp);
 
-      const type = resp.data.type;
-      // get arrayBuffer
-      const arrayBf = await resp.data.arrayBuffer();
+      // convert the decryptedFileKey to JSONWebKey
+      const jwk = JSON.parse(decryptedFileKey) as JsonWebKey;
 
-      // get Blob
-      const blob = new Blob([arrayBf], { type });
+      toast.loading("Downloading file...", { id });
 
-      const url = URL.createObjectURL(blob);
+      const resp = await axios.get(file.retrievalUrl, {
+        responseType: "blob",
+        headers: {
+          Accept: "application/json",
+        },
+      });
 
-      console.log(url);
+      toast.success("File downloaded successfully", { id });
+
+      const arrBuf = await resp.data.arrayBuffer();
+
+      const blob = new Blob([arrBuf], { type: file.type });
+
+      toast.loading("Decrypting file...", { id });
+
+      const decryptedBlob = await decryptBlob(blob, file.iv, jwk);
+
+      toast.success("File decrypted successfully", { id });
+
+      const url = window.URL.createObjectURL(decryptedBlob);
 
       const link = document.createElement("a");
+
       link.href = url;
+
       link.setAttribute("download", file.displayName);
+
+      document.body.appendChild(link);
+
       link.click();
 
-      setTimeout(() => URL.revokeObjectURL(url), 3000);
-    } catch (err) {}
+      setTimeout(() => window.URL.revokeObjectURL(url), 3000);
+    } catch (err) {
+      console.log(err);
+      toast.error("Error downloading file");
+    } finally {
+      toast.dismiss();
+    }
   }
   return (
     <div className="mx-auto">
@@ -64,7 +159,7 @@ const FileCard = ({ file }: FileCardProps) => {
           <Dropdown inline={true} label="">
             <Dropdown.Item className="bg-white">
               <button
-                // onClick={openShareModal}
+                onClick={onClickOpenModal}
                 className="block py-2 px-4 text-sm text-gray-700 cursor-pointer hover:bg-gray-100"
               >
                 Share
@@ -72,7 +167,7 @@ const FileCard = ({ file }: FileCardProps) => {
             </Dropdown.Item>
             <Dropdown.Item className="bg-white">
               <button
-                onClick={downloadFile}
+                onClick={isShared ? downloadSharedFile : downloadFile}
                 className="block py-2 px-4 text-sm text-gray-700 cursor-pointer hover:bg-gray-100"
               >
                 Download
@@ -90,12 +185,10 @@ const FileCard = ({ file }: FileCardProps) => {
         </div>
         <div className="flex items-center w-12">
           <FileIcon
-            extension={getFileExtension(
-              file?.attributes?.displayName ?? "carbon.png"
-            )}
+            extension={getFileExtension(file?.displayName ?? "carbon.png")}
             {...defaultStyles[
               // @ts-ignore
-              getFileExtension(file?.attributes?.displayName ?? "carbon.png")
+              getFileExtension(file?.displayName ?? "carbon.png")
             ]}
             labelUppercase={true}
           />
@@ -104,15 +197,13 @@ const FileCard = ({ file }: FileCardProps) => {
       <div className="flex items-center space-x-4 mt-2">
         <BsFillFileEarmarkFill className="w-6 h-6 text-blue-600" />
         <div className="font-medium space-y-2">
-          <div className="text-xs">{file?.displayName ?? "carbon.png"}</div>
-          <div className="text-xs text-gray-500">
-            {file?.attributes?.displayName ?? "carbon.png"} •{" "}
-            {getFileSize(file?.attributes?.size ?? 0)}
+          {/* <div className="text-xs">{file?.displayName ?? "carbon.png"}</div> */}
+          <div className="text-sm text-gray-500 font-semibold">
+            {file?.displayName ?? "carbon.png"} • {getFileSize(file?.size ?? 0)}
           </div>
           <div className="text-xs text-gray-500">
             {getSlicedAddress(
-              file?.attributes?.owner ??
-                "0xeDa6028a4b72d60Eb2638B94FAE7CD974479bFAE"
+              file?.ownerAddress ?? "0xeDa6028a4b72d60Eb2638B94FAE7CD974479bFAE"
             )}
           </div>
         </div>

@@ -18,7 +18,7 @@ export const encrypt = (message: string, publicKey: string) => {
   const nonce = randomBytes(box.nonceLength);
   const messageUint8 = decodeUTF8(message);
   const publicKeyUint8 = decodeBase64(publicKey);
-  const encrypted = box(messageUint8, nonce, publicKeyUint8, null);
+  const encrypted = box.after(messageUint8, nonce, publicKeyUint8);
   const fullMessage = new Uint8Array(nonce.length + encrypted.length);
   fullMessage.set(nonce);
   fullMessage.set(encrypted, nonce.length);
@@ -34,7 +34,7 @@ export const decrypt = (messageWithNonce: string, secretKey: string) => {
     messageWithNonce.length
   );
   const privateKeyUint8 = decodeBase64(secretKey);
-  const decrypted = box.open(message, nonce, privateKeyUint8, null);
+  const decrypted = box.open.after(message, nonce, privateKeyUint8);
   if (!decrypted) {
     throw new Error("Could not decrypt message");
   }

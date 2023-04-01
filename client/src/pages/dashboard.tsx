@@ -1,27 +1,44 @@
-import PrimaryButton from "@/components/buttons/PrimaryButton";
 import FileCard from "@/components/cards/FIleCard";
 import FolderCard from "@/components/cards/FolderCard";
-import useApi from "@/hooks/useApi";
+import useDb from "@/hooks/useDb";
+import useInterval from "@/hooks/useInterval";
 import MainLayout from "@/layouts";
+import { IBloc } from "@/types/Bloc";
+import { IBlocFile } from "@/types/BlocFile";
 import { NextPageWithLayout } from "@/types/Layout";
-import { useInkathon } from "@scio-labs/use-inkathon";
 import Head from "next/head";
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import { toast } from "react-hot-toast";
 
 const Dashboard: NextPageWithLayout = () => {
-  const { activeAccount } = useInkathon();
-  const [secret, setSecret] = useState<string | null>(null);
-  const { getSecret } = useApi();
+  const [blocs, setBlocs] = useState<IBloc[]>([]);
+  const [files, setFiles] = useState<IBlocFile[]>([]);
+  const { getOwnerBlocs, getOwnerFiles } = useDb();
 
-  useEffect(() => {
-    const getUserSecret = async () => {
-      const secret = await getSecret();
-      setSecret(secret);
-    };
-    getUserSecret();
-  }, [activeAccount]);
+  const getBlocs = async () => {
+    const resp = await getOwnerBlocs();
+    if (resp.status === "ok") {
+      setBlocs(resp.data);
+    } else {
+      toast.error(resp.msg);
+    }
+  };
 
-  console.log(secret);
+  const getFiles = async () => {
+    const resp = await getOwnerFiles();
+    if (resp.status === "ok") {
+      setFiles(resp.data);
+    } else {
+      toast.error(resp.msg);
+    }
+  };
+
+  useInterval(() => {
+    getBlocs()
+    getFiles()
+  }, 10000);
+
+
   return (
     <>
       <Head>
@@ -31,36 +48,59 @@ const Dashboard: NextPageWithLayout = () => {
         <div className="container px-6 py-3 mx-auto">
           <div className="flex items-center justify-between mb-8">
             <h1 className="text-3xl font-semibold text-gray-800 capitalize lg:text-4xl">
-              My Files
+              Dashboard
             </h1>
-            <PrimaryButton
-              text={"Refresh Files / Folders"}
-              isWidthFull={false}
-              // onClick={async () => {
-              //   await generateEncryptedSecret();
-              // }}
-            />
+            
           </div>
           <h1 className="text-xl font-semibold text-gray-800 capitalize mb-4">
             Folders
           </h1>
-          <div className="grid grid-cols-1 gap-8 xl:gap-12 md:grid-cols-3">
-            {[...Array(9)].map((_, i) => (
+          {blocs.length > 0 ? (
+            <div className="grid grid-cols-1 gap-8 xl:gap-12 md:grid-cols-3">
               <FolderCard
-                key={i}
-                title={"Folder Name"}
+                title={"All Folders"}
                 hrefPath={"/dashboard/folder"}
               />
-            ))}
-          </div>
+              {blocs.length > 8
+                ? blocs
+                    .slice(0, 8)
+                    .map((bloc) => (
+                      <FolderCard
+                        key={bloc.entityId}
+                        title={bloc.displayName}
+                        hrefPath={`/dashboard/folder/${bloc.entityId}`}
+                      />
+                    ))
+                : blocs.map((bloc) => (
+                    <FolderCard
+                      key={bloc.entityId}
+                      title={bloc.displayName}
+                      hrefPath={`/dashboard/folder/${bloc.entityId}`}
+                    />
+                  ))}
+            </div>
+          ) : (
+            <div className="font-bold text-gray-700 mt-2 text-xl">
+              You haven&apos;t created any folder yet! 😢 Create One 😂
+            </div>
+            // <div className="flex flex-col items-center justify-center h-96">
+
+            // </div>
+          )}
           <h2 className="text-sm font-semibold text-gray-800 capitalize lg:text-xl mt-8 mb-4">
             All Files
           </h2>
-          <div className="grid grid-cols-1 gap-8 xl:gap-12 md:grid-cols-4 mb-4">
-            {[...Array(9)].map((_, i) => (
-              <FileCard key={i} file={"File Name"} />
-            ))}
-          </div>
+          {files.length > 0 ? (
+            <div className="grid grid-cols-1 gap-8 xl:gap-12 md:grid-cols-4 mb-4">
+              {files.map((fileItem) => (
+                <FileCard key={fileItem.entityId} file={fileItem} />
+              ))}
+            </div>
+          ) : (
+            <div className="font-bold text-gray-700 mt-2 text-xl">
+              You haven&apos;t uploaded any file yet! 😢 Upload One 😂
+            </div>
+          )}
         </div>
       </section>
     </>

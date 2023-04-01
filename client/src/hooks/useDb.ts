@@ -34,7 +34,7 @@ const useDb = () => {
 
   const getOwnerBlocs = useCallback(async () => {
     const response = await axios.get<IApiResponse>(
-      `/api/bloc/get-blocs-by-wallet?owner=${activeAccount.address}`
+      `/api/bloc/get-blocs-by-wallet`
     );
     return response.data;
   }, [activeAccount]);
@@ -46,11 +46,25 @@ const useDb = () => {
     return response.data;
   }, []);
 
+  const getOwnerFiles = useCallback(async () => {
+    const response = await axios.get<IApiResponse>(`/api/file/`);
+    return response.data;
+  }, [activeAccount]);
+
+  const getFilesSharedWithMe = useCallback(async () => {
+    const response = await axios.get<IApiResponse>(
+      `/api/file/get-files-shared-with-me`
+    );
+    return response.data;
+  }, [activeAccount]);
+
   return {
     createBloc,
     saveFileStorageInfo,
     getOwnerBlocs,
     removeBloc,
+    getOwnerFiles,
+    getFilesSharedWithMe,
   };
 };
 
