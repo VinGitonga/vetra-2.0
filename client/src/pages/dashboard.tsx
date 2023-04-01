@@ -36,7 +36,7 @@ const Dashboard: NextPageWithLayout = () => {
   useInterval(() => {
     getBlocs()
     getFiles()
-  }, 10000);
+  }, 4000);
 
 
   return (

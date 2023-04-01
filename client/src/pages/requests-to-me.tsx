@@ -1,5 +1,6 @@
 import PrimaryButton from "@/components/buttons/PrimaryButton";
 import RequestItem from "@/components/requests/RequestItem";
+import useInterval from "@/hooks/useInterval";
 import useTransaction from "@/hooks/useTransaction";
 import MainLayout from "@/layouts";
 import { IRequest } from "@/types/Contracts";
@@ -15,14 +16,13 @@ const RequestsToMe: NextPageWithLayout = () => {
 
   const handleRefreshRequests = async () => {
     const requests = await getRequestsByAddressedTo();
+    console.log(requests);
     if (requests) {
       setRequests(requests);
     }
   };
-  console.log("requests", requests);
-  useEffect(() => {
-    handleRefreshRequests();
-  }, [activeAccount]);
+
+  useInterval(() => handleRefreshRequests(), 4000);
 
   return (
     <>
@@ -47,9 +47,7 @@ const RequestsToMe: NextPageWithLayout = () => {
                 <RequestItem key={item.sentAt} data={item} />
               ))
             ) : (
-              <div className="font-bold text-gray-700">
-                No New Requests
-              </div>
+              <div className="font-bold text-gray-700">No New Requests</div>
             )}
           </div>
         </div>
