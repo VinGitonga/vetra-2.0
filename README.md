@@ -1,6 +1,6 @@
 # Vetra Cloud
 
-Vetra Cloud is a decentralized app that allows individuals and institutions with wallet addresses to store, retrieve and share files in decentralized storage while incorporating Web3 and blockchain capabilities.
+Vetra Cloud is a decentralized app that allows individuals and institutions with wallet addresses to store, retrieve and share encrypted files in decentralized storage while incorporating Web3 and blockchain capabilities.
 
 ## Inspiration 💡
 
