@@ -34,5 +34,7 @@ async function removeBloc(req: NextApiRequest, res: NextApiResponse) {
       status: "error",
       msg: "Bloc could not be removed",
     });
+  } finally {
+    await redis.closeClient();
   }
 }

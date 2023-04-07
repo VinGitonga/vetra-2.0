@@ -103,6 +103,6 @@ async function addAddressToAccessFile(
       msg: "Address could not be added to access list",
     });
   } finally {
-    // await redis.closeClient();
+    await redis.closeClient();
   }
 }
