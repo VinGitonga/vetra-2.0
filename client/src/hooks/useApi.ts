@@ -33,37 +33,42 @@ const useApi = () => {
 
   const getSecret = useCallback(async () => {
     // get first the encrypted nounce
-    if (activeAccount && api && contract) {
-      const result = await contractQuery(
-        api,
-        activeAccount.address,
-        contract,
-        "getNounce",
-        {}
-      );
-      const encryptedNounce = unwrapResultOrDefault(result, "" as string);
-
-      console.log(encryptedNounce);
-
-      if (encryptedNounce) {
-        const response = await axios.get<IApiResponse>(
-          `/api/account/generate-secret`
+    try {
+      if (activeAccount && api && contract) {
+        const result = await contractQuery(
+          api,
+          activeAccount.address,
+          contract,
+          "getNounce",
+          {}
         );
+        const encryptedNounce = unwrapResultOrDefault(result, "" as string);
 
-        let res_info = response.data;
-        if (res_info.status === "ok") {
-          const encryptedSecret = res_info.data.encryptedSecret;
-          const decryptedSecret = await decryptSecret(
-            encryptedSecret,
-            encryptedNounce,
-            activeAccount.address
+        console.log(encryptedNounce);
+
+        if (encryptedNounce) {
+          const response = await axios.get<IApiResponse>(
+            `/api/account/generate-secret`
           );
-          return decryptedSecret;
+
+          let res_info = response.data;
+          if (res_info.status === "ok") {
+            const encryptedSecret = res_info.data.encryptedSecret;
+            const decryptedSecret = await decryptSecret(
+              encryptedSecret,
+              encryptedNounce,
+              activeAccount.address
+            );
+            return decryptedSecret;
+          }
+        } else {
+          return null;
         }
       } else {
         return null;
       }
-    } else {
+    } catch (err) {
+      console.log(err);
       return null;
     }
   }, [activeAccount]);
