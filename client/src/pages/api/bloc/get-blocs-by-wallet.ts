@@ -49,6 +49,6 @@ async function fetchBlocs(req: NextApiRequest, res: NextApiResponse) {
       msg: "Blocs could not be fetched",
     });
   } finally {
-    // await redis.closeClient();
+    await redis.closeClient();
   }
 }
