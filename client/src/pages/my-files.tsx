@@ -6,11 +6,13 @@ import MainLayout from "@/layouts";
 import { IBloc } from "@/types/Bloc";
 import { IBlocFile } from "@/types/BlocFile";
 import { NextPageWithLayout } from "@/types/Layout";
+import { useInkathon } from "@scio-labs/use-inkathon";
 import Head from "next/head";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "react-hot-toast";
 
 const MyFiles: NextPageWithLayout = () => {
+  const { activeAccount } = useInkathon();
   const { getOwnerBlocs, getOwnerFiles } = useDb();
   const [blocs, setBlocs] = useState<IBloc[]>([]);
   const [files, setFiles] = useState<IBlocFile[]>([]);
@@ -33,10 +35,10 @@ const MyFiles: NextPageWithLayout = () => {
     }
   };
 
-  useInterval(() => {
+  useEffect(() => {
     getBlocs();
     getFiles();
-  }, 10000);
+  }, [activeAccount]);
 
   return (
     <>

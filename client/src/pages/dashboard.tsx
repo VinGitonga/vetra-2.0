@@ -1,3 +1,4 @@
+import PrimaryButton from "@/components/buttons/PrimaryButton";
 import FileCard from "@/components/cards/FIleCard";
 import FolderCard from "@/components/cards/FolderCard";
 import useDb from "@/hooks/useDb";
@@ -7,7 +8,7 @@ import { IBloc } from "@/types/Bloc";
 import { IBlocFile } from "@/types/BlocFile";
 import { NextPageWithLayout } from "@/types/Layout";
 import Head from "next/head";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "react-hot-toast";
 
 const Dashboard: NextPageWithLayout = () => {
@@ -33,24 +34,32 @@ const Dashboard: NextPageWithLayout = () => {
     }
   };
 
-  useInterval(() => {
-    getBlocs()
-    getFiles()
-  }, 4000);
+  const getMyItems = () => {
+    getBlocs();
+    getFiles();
+  };
 
+  useEffect(() => {
+    getBlocs();
+    getFiles();
+  }, []);
 
   return (
     <>
       <Head>
         <title>Vetra | Dashboard</title>
       </Head>
-      <section>
-        <div className="container px-6 py-3 mx-auto">
-          <div className="flex items-center justify-between mb-8">
+      <section className="sm:py-8">
+        <div className="container px-6 py-3 sm:py-10 mx-auto">
+          <div className="flex items-center justify-between mt-16 md:mt-8">
             <h1 className="text-3xl font-semibold text-gray-800 capitalize lg:text-4xl">
               Dashboard
             </h1>
-            
+            <PrimaryButton
+              isWidthFull={false}
+              text="Refresh Files"
+              onClick={getMyItems}
+            />
           </div>
           <h1 className="text-xl font-semibold text-gray-800 capitalize mb-4">
             Folders

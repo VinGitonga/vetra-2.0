@@ -51,7 +51,7 @@ async function generateSecretKey(req: NextApiRequest, res: NextApiResponse) {
       msg: "Secret could not be generated",
     });
   } finally {
-    await redis.closeClient();
+    // await redis.closeClient();
   }
 }
 
@@ -107,6 +107,6 @@ async function getVaultEncryptedSecret(
       msg: "Something went wrong",
     });
   } finally {
-    await redis.closeClient();
+    // await redis.closeClient();
   }
 }

@@ -5,12 +5,14 @@ import useInterval from "@/hooks/useInterval";
 import MainLayout from "@/layouts";
 import { IBlocFile } from "@/types/BlocFile";
 import { NextPageWithLayout } from "@/types/Layout";
+import { useInkathon } from "@scio-labs/use-inkathon";
 import Head from "next/head";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "react-hot-toast";
 
 const SharedWithMe: NextPageWithLayout = () => {
   const { getFilesSharedWithMe } = useDb();
+  const { activeAccount } = useInkathon();
   const [files, setFiles] = useState<IBlocFile[]>([]);
 
   const getFiles = async () => {
@@ -22,9 +24,9 @@ const SharedWithMe: NextPageWithLayout = () => {
     }
   };
 
-  useInterval(() => getFiles(), 3000);
-
-  console.log(files)
+  useEffect(() => {
+    getFiles();
+  }, [activeAccount]);
 
   return (
     <>
@@ -39,7 +41,11 @@ const SharedWithMe: NextPageWithLayout = () => {
           <h2 className="text-3xl font-semibold text-gray-800 capitalize lg:text-4xl">
             All Files
           </h2>
-          <PrimaryButton text={"Refresh Files"} isWidthFull={false} />
+          <PrimaryButton
+            text={"Refresh Files"}
+            isWidthFull={false}
+            onClick={getFiles}
+          />
         </div>
         {files.length > 0 ? (
           <div className="grid grid-cols-1 gap-8 xl:gap-12 md:grid-cols-4 mb-4">

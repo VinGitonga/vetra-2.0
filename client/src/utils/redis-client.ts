@@ -10,6 +10,9 @@ class RedisClient {
   }
 
   async initClient() {
+    if (this.client.isOpen()) {
+      return this.client;
+    }
     await this.client.open(redis_url);
     return this.client;
   }

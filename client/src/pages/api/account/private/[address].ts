@@ -59,6 +59,6 @@ async function getSecretKey(req: NextApiRequest, res: NextApiResponse) {
       msg: "Secret key could not be retrieved",
     });
   } finally {
-    await redis.closeClient();
+    // await redis.closeClient();
   }
 }

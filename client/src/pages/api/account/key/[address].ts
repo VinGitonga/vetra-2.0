@@ -59,6 +59,6 @@ async function getUserPublicKey(req: NextApiRequest, res: NextApiResponse) {
       msg: "Public key could not be retrieved",
     });
   } finally {
-    await redis.closeClient();
+    // await redis.closeClient();
   }
 }
