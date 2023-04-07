@@ -8,9 +8,7 @@ import { useRouter } from "next/router";
 import { IconType } from "react-icons";
 import { BiHomeAlt } from "react-icons/bi";
 import { useModal } from "@/hooks/store/useModal";
-import CreateFolder from "@/components/dialogs/CreateFolder";
 import { shallow } from "zustand/shallow";
-import UploadFile from "@/components/dialogs/UploadFile";
 
 interface NavItemProps {
   title: string;
@@ -19,32 +17,27 @@ interface NavItemProps {
 }
 
 export default function Sidebar() {
-  const { setCreateModal, setUploadModal, openCreateModal, openUploadModal } =
-    useModal(
-      (state) => ({
-        setCreateModal: state.setCreateModal,
-        setUploadModal: state.setUploadModal,
-        openCreateModal: state.openCreateModal,
-        openUploadModal: state.openUploadModal,
-      }),
-      shallow
-    );
+  const { setCreateModal, setUploadModal, setOpenDrawer } = useModal(
+    (state) => ({
+      setCreateModal: state.setCreateModal,
+      setUploadModal: state.setUploadModal,
+      setOpenDrawer: state.setOpenDrawer,
+    }),
+    shallow
+  );
 
-  const closeModal = () => setCreateModal(false);
-  const openModal = () => setCreateModal(true);
-
-  const closeUpload = () => setUploadModal(false);
-  const openUpload = () => setUploadModal(true);
+  const openModal = () => {
+    setCreateModal(true);
+    setOpenDrawer(false);
+  };
+  const openUpload = () => {
+    setUploadModal(true);
+    setOpenDrawer(false);
+  };
 
   const router = useRouter();
   return (
     <div className="w-64 h-screen fixed">
-      <CreateFolder isOpen={openCreateModal} closeModal={closeModal} />
-      <UploadFile
-        isOpen={openUploadModal}
-        closeModal={closeUpload}
-        setIsOpen={setUploadModal}
-      />
       <button
         type="button"
         onClick={openUpload}

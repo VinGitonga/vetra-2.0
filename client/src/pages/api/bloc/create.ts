@@ -53,6 +53,6 @@ async function createNewBloc(req: NextApiRequest, res: NextApiResponse) {
       msg: "Bloc could not be added",
     });
   } finally {
-    await redis.closeClient();
+    // await redis.closeClient();
   }
 }
